@@ -1,0 +1,6 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>로그인 · 바람의 나라</title><link rel="stylesheet" th:href="@{/css/portal.css}"></head>
+<body class="login-page"><main class="login-box"><div class="eyebrow">COMPANY PORTAL</div><h1>바람의 나라</h1><p class="muted">오늘의 업무를 시작하는 공간</p>
+<div class="alert" th:if="${param.error}">아이디 또는 비밀번호가 일치하지 않습니다.</div><div class="flash" th:if="${param.logout}">로그아웃되었습니다.</div>
+<form th:action="@{/login}" method="post"><label for="username">아이디<input id="username" name="username" autocomplete="username" required autofocus maxlength="60"></label><label for="password">비밀번호<input id="password" name="password" type="password" autocomplete="current-password" required></label><button>로그인</button></form><footer>계정 문의는 사내 관리자에게 연락해주세요.</footer></main></body></html>
+

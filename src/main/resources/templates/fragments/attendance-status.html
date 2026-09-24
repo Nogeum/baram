@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"><body>
+<section th:fragment="attendanceStatus" class="attendance-report" aria-label="내 근태현황">
+  <link rel="stylesheet" th:href="@{/css/attendance-status.css}">
+  <div class="report-month"><h2 th:text="${report.month.year}+'년 '+${report.month.monthValue}+'월 근태 요약'"></h2><span class="muted">이번 달 · 오늘까지</span></div>
+  <div class="attendance-stats">
+    <div class="card"><div class="card-label">이번 달 근무일</div><strong class="stat-value" id="workedDays" th:text="${report.workDays}+'일'"></strong><small>출근 기록 기준</small></div>
+    <div class="card"><div class="card-label">총 근무시간</div><strong class="stat-value" id="workedTime" th:text="${report.workTime}"></strong><small>퇴근 완료 기록 기준</small></div>
+    <div class="card"><div class="card-label">이번 달 누적 초과근무</div><strong class="stat-value" id="overtime" th:text="${report.overtime}"></strong><small>하루 8시간 초과분</small></div>
+    <div class="card"><div class="card-label">지각 · 결근</div><strong class="stat-value"><span th:text="${report.lateDays}+'회'"></span><span class="stat-divider"> / </span><span th:text="${report.absentDays}+'일'"></span></strong><small>지각 횟수 / 결근 일수</small></div>
+    <div class="card"><div class="card-label">잔여 연차</div><strong class="stat-value" th:text="${remaining}+'일'"></strong><small th:text="${year}+'년 · 승인 대기 신청 포함'"></small></div>
+  </div>
+  <section class="panel attendance-week-panel" aria-labelledby="attendanceWeekTitle">
+    <div class="attendance-week-heading"><div><h2 id="attendanceWeekTitle">주간 근태 캘린더</h2><p class="muted">출퇴근 기록과 승인된 휴가를 확인하세요.</p></div>
+      <div class="attendance-week-navigation">
+        <a class="week-nav" th:href="@{/employee/attendance-status(date=${report.previousWeek})}" aria-label="이전 주">‹</a>
+        <strong id="attendanceWeekLabel" th:text="${report.weekLabel}"></strong>
+        <a class="week-nav" th:href="@{/employee/attendance-status(date=${report.nextWeek})}" aria-label="다음 주">›</a>
+        <a class="week-current" th:href="@{/employee/attendance-status}">이번 주</a>
+      </div>
+    </div>
+    <div class="attendance-legend" aria-label="상태별 색상 안내"><span class="attendance-pill green">정상</span><span class="attendance-pill orange">지각</span><span class="attendance-pill red">결근</span><span class="attendance-pill blue">휴가 · 연차 · 반차 · 병가 · 조퇴</span></div>
+    <div class="attendance-week-scroll" tabindex="0" aria-label="주간 근태 캘린더, 좁은 화면에서 가로 스크롤 가능">
+      <div class="attendance-week-grid">
+        <div class="attendance-week-day sun">일</div><div class="attendance-week-day">월</div><div class="attendance-week-day">화</div><div class="attendance-week-day">수</div><div class="attendance-week-day">목</div><div class="attendance-week-day">금</div><div class="attendance-week-day sat">토</div>
+        <article th:each="day : ${report.days}" class="attendance-week-cell" th:classappend="${!day.currentMonth ? 'outside-month' : (day.today ? 'is-today' : '')}" th:attr="data-date=${day.date}">
+          <th:block th:if="${day.currentMonth}">
+            <div class="attendance-day-number"><time th:datetime="${day.date}" th:text="${day.date.dayOfMonth}"></time><span th:if="${day.today}" class="today-label">오늘</span></div>
+            <p class="attendance-day-times" th:if="${!day.times.isEmpty()}" th:text="${day.times}"></p>
+            <p class="attendance-day-duration" th:if="${!day.duration.isEmpty()}" th:text="${day.duration}"></p>
+            <div class="attendance-day-badges"><span th:each="badge : ${day.badges}" class="attendance-pill" th:classappend="${badge.tone}" th:text="${badge.label}"></span></div>
+          </th:block>
+        </article>
+      </div>
+    </div>
+    <details class="attendance-calculation"><summary>집계 기준 보기</summary>
+      <ul><li>상단 요약은 주간 캘린더를 이동해도 이번 달 기준입니다. 퇴근이 기록된 근무시간에서 점심 12~13시와 겹치는 시간을 제외합니다.</li>
+      <li>하루 8시간을 초과한 실제 근무시간을 합산합니다. 근무 중이거나 퇴근 기록이 없는 날은 시간 합계에서 제외합니다.</li>
+      <li>지난 평일에 출근 기록과 승인된 종일 휴가가 없으면 결근으로 표시합니다. 주말·오늘·미래·입사 전은 제외하며 공휴일은 아직 반영하지 않습니다.</li>
+      <li>승인된 오전 반차는 지각, 오후 반차는 조퇴 표시에서 제외합니다. 반차 날 출근 기록이 없으면 남은 근무에 대해 결근도 표시합니다.</li></ul>
+    </details>
+  </section>
+</section>
+</body></html>

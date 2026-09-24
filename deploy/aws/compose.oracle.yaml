@@ -1,0 +1,8 @@
+# Oracle must already be reachable and have the portal schema.
+services:
+  portal:
+    environment:
+      SPRING_PROFILES_ACTIVE: oracle
+      ORACLE_URL: ${ORACLE_URL:?Set the AWS-reachable Oracle JDBC URL}
+      ORACLE_USERNAME: ${ORACLE_USERNAME:?Set the Oracle application username}
+      ORACLE_PASSWORD: ${ORACLE_PASSWORD:?Set the Oracle application password}

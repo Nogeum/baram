@@ -1,0 +1,31 @@
+<!DOCTYPE html><html lang="ko" xmlns:th="http://www.thymeleaf.org"><body>
+<section th:fragment="requestForm" class="overtime-layout">
+  <div class="panel"><h2>초과근무 신청서</h2><p class="muted">이미 근무한 날짜와 초과근무 시간, 결재자를 선택하고 사유를 입력하세요.</p>
+    <form id="overtimeForm" class="form-grid" th:action="@{/employee/overtime}" method="post">
+      <label>근무일자<input type="date" name="workDate" th:min="${me.hireDate}" th:max="${today}" th:value="${today}" required></label>
+      <label>결재자<select name="approverId" required><option value="">결재자 선택</option><option th:each="approver : ${approvers}" th:value="${approver.id}" th:text="${approver.name}+' · '+${approver.department}"></option></select></label>
+      <label>시작 시각<input id="overtimeStart" type="time" name="startTime" step="60" required></label>
+      <label>종료 시각<input id="overtimeEnd" type="time" name="endTime" step="60" required></label>
+      <output id="overtimeDuration" class="full muted" aria-live="polite">시작·종료 시각을 선택하세요.</output>
+      <label class="full">사유<textarea name="reason" required maxlength="1000" placeholder="초과근무 사유를 입력해주세요."></textarea></label>
+      <p class="full muted">입사일부터 오늘까지 이미 종료된 근무만 신청할 수 있습니다. 시간은 한국 시간(KST) 기준입니다. 자정을 넘는 근무는 날짜별로 나누어 신청해주세요. 승인 대기 중에는 신청내역에서 취소할 수 있습니다.</p>
+      <div class="full"><button th:disabled="${#lists.isEmpty(approvers)}">초과근무 신청</button><p class="alert" th:if="${#lists.isEmpty(approvers)}">같은 부서의 결재자가 없습니다. 웹 관리자에게 부서 관리 권한자 등록을 요청해주세요. 본인 결재는 불가합니다.</p></div>
+    </form>
+  </div>
+  <aside class="panel overtime-summary"><div class="card-label">이번 달 누적 초과근무</div><div class="card-value" th:text="${actualOvertime}"></div><p class="muted">실제 출퇴근 기록 기준입니다. 신청·승인 시간은 자동 합산되지 않습니다.</p><a th:href="@{/employee/attendance-status}">근태현황 보기 →</a></aside>
+  <script defer th:src="@{/js/overtime.js}"></script>
+</section>
+<section th:fragment="requestList" class="panel overtime-list"><h2 th:text="${admin ? '초과근무 승인 대기' : '내 초과근무 신청 내역'}"></h2>
+  <div class="table-wrap"><table><thead><tr><th th:if="${admin}">신청자</th><th>신청일자</th><th>시간</th><th>결재자</th><th>상태</th><th>사유 / 처리 의견</th><th>처리</th></tr></thead><tbody>
+    <tr th:each="r : ${overtimeRequests}">
+      <td th:if="${admin}" th:text="${r.employee.displayName}+' · '+${r.employee.department}"></td>
+      <td th:text="${r.workDate}"></td><td><span th:text="${#temporals.format(r.startTime,'HH:mm')}+' ~ '+${#temporals.format(r.endTime,'HH:mm')}"></span><br><small th:text="${r.durationLabel}"></small></td>
+      <td th:text="${r.approver.displayName}"></td><td><span class="badge" th:classappend="${r.status}" th:text="${r.status.label}"></span></td>
+      <td class="wrap"><span th:text="${r.reason}"></span><br><small th:text="${r.reviewComment}"></small></td>
+      <td><a class="amendment-link" th:if="${!admin and r.status.name()=='APPROVED'}" th:href="@{/employee/request-status(type='OVERTIME',requestId=${r.id})}">취소·변경 요청</a><form th:if="${!admin and r.status.name()=='PENDING'}" th:action="@{/employee/overtime/{id}/cancel(id=${r.id})}" method="post"><button class="secondary">신청 취소</button></form>
+        <form th:if="${admin}" class="review-form" th:action="@{/manager/overtime/{id}/review(id=${r.id})}" method="post"><input name="comment" maxlength="500" placeholder="반려 시 사유 필수" aria-label="처리 의견"><button name="approve" value="true">승인</button><button class="danger" name="approve" value="false">반려</button></form></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(overtimeRequests)}"><td colspan="7" class="empty">초과근무 신청 내역이 없습니다.</td></tr>
+  </tbody></table></div>
+</section>
+</body></html>

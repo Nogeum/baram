@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="ko" xmlns:th="http://www.thymeleaf.org"><body>
+<div th:fragment="widget" class="chat-widget" th:attr="data-csrf-name=${_csrf.parameterName},data-csrf-token=${_csrf.token}">
+  <link rel="stylesheet" th:href="@{/css/chat.css}">
+  <script defer th:src="@{/js/chat.js}"></script>
+  <section id="chatPanel" class="chat-panel" role="dialog" aria-labelledby="chatPanelTitle" hidden>
+    <div class="chat-heading"><button type="button" id="chatBack" aria-label="대화 목록으로" hidden>‹</button><div class="chat-heading-text"><h2 id="chatPanelTitle">쪽지 · 채팅</h2><p id="chatSubtitle">동료와 나누는 대화</p></div><button type="button" id="chatClose" aria-label="채팅 닫기">×</button></div>
+    <div id="chatError" class="chat-error" role="alert" hidden></div>
+    <div id="chatListView" class="chat-list-view"><div class="chat-list-toolbar"><span>최근 대화</span><button type="button" id="chatNew">＋ 새 대화</button></div><div id="chatThreads" class="chat-people-list" aria-label="최근 대화"></div></div>
+    <div id="chatPeopleView" class="chat-list-view" hidden><label class="chat-search">직원 찾기<input id="chatSearch" type="search" maxlength="80" placeholder="이름, 부서, 직급 검색" autocomplete="off"></label><small class="chat-search-hint">최대 50명 표시 · 검색으로 직원을 찾아보세요.</small><div id="chatPeople" class="chat-people-list" aria-label="직원 검색 결과"></div></div>
+    <div id="chatThreadView" class="chat-thread-view" hidden>
+      <button type="button" id="chatOlder" class="chat-older" hidden>이전 메시지 더 보기</button>
+      <div id="chatMessages" class="chat-messages" role="region" aria-label="대화 메시지" tabindex="0"></div>
+      <button type="button" id="chatLatest" class="chat-latest" hidden>새 메시지 확인 ↓</button>
+      <form id="chatSendForm" class="chat-compose" th:action="@{/api/chat/threads/0}" method="post">
+        <label for="chatInput" class="chat-input-label">메시지</label><textarea id="chatInput" name="content" rows="2" maxlength="2000" required placeholder="메시지를 입력하세요"></textarea>
+        <div class="chat-compose-footer"><small id="chatComposeHint">Enter 전송 · Shift+Enter 줄바꿈</small><button id="chatSend" type="submit">보내기</button></div>
+      </form>
+    </div>
+  </section>
+  <button type="button" id="chatLauncher" class="chat-launcher" aria-label="채팅 열기" aria-expanded="false" aria-controls="chatPanel" title="채팅">
+    <span id="chatUnread" class="chat-unread" hidden></span>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-4 3 1.6-6A8.5 8.5 0 1 1 21 11.5Z"/><path d="M7 11h.01M11.5 11h.01M16 11h.01" stroke-width="3"/></svg>
+  </button>
+</div></body></html>

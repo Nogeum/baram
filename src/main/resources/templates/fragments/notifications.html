@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="ko" xmlns:th="http://www.thymeleaf.org"><body>
+<div th:fragment="popup" class="notification-center">
+  <button type="button" id="notification-toggle" class="notification-toggle" aria-label="알림" aria-expanded="false" aria-controls="notification-popup">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
+    <span class="notification-count" th:hidden="${unreadNotifications==0}" th:text="${unreadNotifications}" aria-hidden="true"></span>
+  </button>
+  <section id="notification-popup" class="notification-popup" aria-labelledby="notification-title" hidden>
+    <div class="notification-heading"><h2 id="notification-title">알림</h2><button type="button" class="notification-close" aria-label="알림 닫기">×</button></div>
+    <p class="notification-summary" aria-live="polite">읽지 않은 알림 <strong id="notification-unread" th:text="${unreadNotifications}"></strong>개</p>
+    <p class="notification-error" role="alert" hidden></p>
+    <div class="notification-list">
+      <article class="notification-item" th:each="n : ${notifications}" th:classappend="${!n.readFlag} ? 'unread'" th:with="destination=${@notificationLinks.destination(n,me)}">
+        <p><a class="notification-link" th:href="@{${destination}}" th:text="${n.message}"></a></p>
+        <div class="notification-meta"><time th:text="${#temporals.format(n.createdAt,'yyyy-MM-dd HH:mm')}"></time><span class="notification-read" th:hidden="${!n.readFlag}">읽음</span>
+          <form th:unless="${n.readFlag}" th:action="@{/notifications/{id}/read(id=${n.id})}" method="post"><button type="submit">읽음 처리</button></form>
+        </div>
+      </article>
+      <p class="empty" th:if="${#lists.isEmpty(notifications)}">받은 알림이 없습니다.</p>
+    </div>
+    <p class="notification-footer">최근 알림 최대 100개를 표시합니다.</p>
+  </section>
+  <script th:src="@{/js/notifications.js}" defer></script>
+</div>
+</body></html>

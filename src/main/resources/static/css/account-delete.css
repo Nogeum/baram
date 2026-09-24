@@ -1,0 +1,6 @@
+#accountDeleteDialog { width:min(500px,calc(100vw - 32px)); max-height:calc(100dvh - 40px); padding:26px; border:0; border-radius:14px; color:#25314b; overflow:auto; box-shadow:0 20px 80px #17254b40; }
+#accountDeleteDialog::backdrop { background:#17254b80; }
+#accountDeleteTarget { font-weight:700; overflow-wrap:anywhere; }
+#accountDeleteDescription { line-height:1.8; color:#778198; margin-bottom:22px; }
+#accountDeleteDialog .actions { justify-content:flex-end; margin-top:22px; }
+.account-delete-actions { display:flex; align-items:center; flex-wrap:wrap; gap:12px; margin:18px 0 8px; }

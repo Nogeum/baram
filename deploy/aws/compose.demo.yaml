@@ -1,0 +1,16 @@
+# Optional isolated H2 test DB; does not import local Oracle records.
+services:
+  portal:
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: "jdbc:h2:file:/app/data/portal;MODE=Oracle;DB_CLOSE_ON_EXIT=FALSE"
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: ${DEMO_DB_PASSWORD:?Set a fresh test database password}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      PORTAL_BOOTSTRAP_ENABLED: "true"
+      PORTAL_ADMIN_PASSWORD: ${PORTAL_ADMIN_PASSWORD:?Set a fresh test administrator password}
+      PORTAL_EMPLOYEE_PASSWORD: ""
+    volumes:
+      - demo_data:/app/data
+volumes:
+  demo_data:

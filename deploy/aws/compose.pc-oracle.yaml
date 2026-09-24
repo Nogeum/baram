@@ -1,0 +1,50 @@
+# Standalone configuration for Linux EC2; do not merge with compose.yaml.
+# Keep a reverse SSH tunnel bound to EC2 127.0.0.1:11521 running on the PC.
+name: portal-aws
+services:
+  portal:
+    image: ${PORTAL_IMAGE:-portal:aws-test}
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      JAVA_TOOL_OPTIONS: "-Doracle.jdbc.timezoneAsRegion=false -Duser.timezone=Asia/Seoul -Xms128m -Xmx384m"
+      SERVER_ADDRESS: "127.0.0.1"
+      SERVER_PORT: "8080"
+      SERVER_FORWARD_HEADERS_STRATEGY: framework
+      SERVER_SERVLET_SESSION_COOKIE_SECURE: "true"
+      SPRING_THYMELEAF_CACHE: "true"
+      SPRING_PROFILES_ACTIVE: oracle,oracle-local
+      SPRING_DATASOURCE_URL: "jdbc:oracle:thin:@//127.0.0.1:11521/${ORACLE_SERVICE_NAME:-orcl}"
+      PORTAL_BOOTSTRAP_ENABLED: "false"
+    volumes:
+      - type: bind
+        source: ./application-oracle-local.properties
+        target: /app/config/application-oracle-local.properties
+        read_only: true
+        bind:
+          create_host_path: false
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  proxy:
+    image: caddy:2
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      PORTAL_HOSTNAME: ${PORTAL_HOSTNAME:?Set a DNS hostname pointing to EC2}
+    volumes:
+      - ./Caddyfile.pc-oracle:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [portal]
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  caddy_data:
+  caddy_config:

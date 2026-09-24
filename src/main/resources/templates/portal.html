@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title th:text="${title} + ' · 바람의 나라'">바람의 나라</title><link rel="stylesheet" th:href="@{/css/portal.css}"><script defer th:src="@{/js/profile.js}"></script></head>
+<body><div class="app-shell"><header class="topbar"><a class="brand" th:href="@{/}">바람의 나라</a><div class="topbar-user"><span><b th:text="${me.name}"></b> 님 <small th:text="${me.department} + ' · ' + ${me.positionName}"></small></span><div th:replace="~{fragments/notifications :: popup}"></div><form th:action="@{/logout}" method="post"><button>로그아웃</button></form></div></header>
+<div class="layout"><aside class="sidebar"><div class="caption">WORKSPACE</div>
+<nav th:if="${!admin or managerView}">
+<a th:href="@{/employee/main}" th:classappend="${!managerView and page=='main'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#home"></use></svg><span>대시보드</span></a>
+<a th:href="@{/employee/schedule}" th:classappend="${page=='schedule'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#calendar"></use></svg><span>일정관리</span></a>
+<details class="attendance-menu" th:open="${page=='attendance-status' or page=='leave-request' or page=='overtime-request' or page=='request-status' or page=='correction-request' or page=='gw-tasks' or page=='gw-task' or page=='gw-documents' or page=='gw-document' or page=='gw-reservations'}">
+<summary><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#clock"></use></svg><span>근태관리</span></summary>
+<div class="attendance-submenu">
+<a th:href="@{/employee/attendance-status}" th:classappend="${page=='attendance-status'} ? 'active'"><span>근태현황</span></a>
+<a th:href="@{/groupware/tasks}" th:classappend="${page=='gw-tasks' or page=='gw-task'} ? 'active'"><span>업무 관리</span></a>
+<a th:href="@{/groupware/documents}" th:classappend="${page=='gw-documents' or page=='gw-document'} ? 'active'"><span>전자결재</span></a>
+<a th:href="@{/employee/leave-request}" th:classappend="${page=='leave-request'} ? 'active'"><span>휴가신청</span></a>
+<a th:href="@{/employee/overtime-request}" th:classappend="${page=='overtime-request'} ? 'active'"><span>초과근무신청</span></a>
+<a th:href="@{/employee/correction-request}" th:classappend="${page=='correction-request'} ? 'active'"><span>출퇴근 정정 신청</span></a>
+<a th:href="@{/employee/request-status}" th:classappend="${page=='request-status'} ? 'active'"><span>신청내역</span></a>
+<a th:href="@{/groupware/reservations}" th:classappend="${page=='gw-reservations'} ? 'active'"><span>회의실·장비 예약</span></a>
+</div></details>
+<details class="attendance-menu department-menu" th:if="${me.departmentManager and me.role.name()=='EMPLOYEE'}" th:open="${managerView}">
+<summary><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#users"></use></svg><span>부서 관리</span></summary><div class="attendance-submenu">
+<a th:href="@{/manager/main}" th:classappend="${managerView and page=='main'} ? 'active'"><span>부서 대시보드</span></a>
+<a th:href="@{/manager/attendance-manage}" th:classappend="${managerView and page=='attendance-manage'} ? 'active'"><span>부서 근태관리</span></a>
+<a th:href="@{/manager/leave-calendar}" th:classappend="${managerView and page=='leave-calendar'} ? 'active'"><span>부서 캘린더</span></a>
+<a th:href="@{/manager/monthly-report}" th:classappend="${managerView and page=='monthly-report'} ? 'active'"><span>월별 근태 보고서</span></a>
+<a th:href="@{/manager/schedule-assign}" th:classappend="${managerView and page=='schedule-assign'} ? 'active'"><span>스케줄 배정</span></a>
+<a th:href="@{/manager/approval}" th:classappend="${managerView and page=='approval'} ? 'active'"><span>승인 대기함</span></a>
+</div></details>
+<a th:href="@{/groupware/directory}" th:classappend="${page=='gw-directory'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#users"></use></svg><span>조직도·직원 연락처</span></a>
+<a th:href="@{/groupware/library}" th:classappend="${page=='gw-library' or page=='gw-library-document'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#folder"></use></svg><span>자료실</span></a>
+<a th:href="@{/groupware/holidays}" th:classappend="${page=='gw-holidays'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#sun"></use></svg><span>공휴일·회사 휴무일</span></a>
+<a th:href="@{/employee/mypage}" th:classappend="${page=='mypage'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#user"></use></svg><span>마이페이지</span></a>
+</nav><nav th:if="${admin and !managerView}">
+<a th:href="@{/admin/main}" th:classappend="${page=='main'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#home"></use></svg><span>시스템 관리</span></a>
+<a th:href="@{/admin/employee-manage}" th:classappend="${page=='employee-manage'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#users"></use></svg><span>직원·권한 관리</span></a>
+<a th:href="@{/admin/notification}" th:classappend="${page=='notification'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#bell"></use></svg><span>공지·알림</span></a>
+<a th:href="@{/groupware/reservations}" th:classappend="${page=='gw-reservations'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#building"></use></svg><span>회의실·장비 예약 허가</span></a>
+</nav></aside>
+<main class="content"><div class="page-heading"><div><h1 th:text="${title}"></h1><span class="muted" th:text="${admin ? '함께 일하는 조직을 한눈에 관리하세요.' : me.name + ' 님, 오늘도 좋은 하루 보내세요.'}"></span></div><button th:if="${page=='employee-manage'}" type="button" id="openEmployeeCreate" class="employee-add"><span aria-hidden="true">+</span> 신규 직원 등록</button><span th:unless="${page=='employee-manage'}" class="badge" th:text="${today} + ' · KST'"></span></div>
+<div class="flash" role="status" th:if="${success}" th:text="${success}"></div>
+<div class="alert" role="alert" th:if="${error}" th:text="${error}"></div>
+
+<div th:if="${amendmentPage!=null}" th:with="groupwarePage=${amendmentPage}"><div th:replace="~{fragments/groupware :: content}"></div></div>
+<div th:if="${groupwarePage!=null}"><div th:replace="~{fragments/groupware :: content}"></div></div>
+<div th:if="${!admin and page=='attendance-status'}"><section th:replace="~{fragments/attendance-status :: attendanceStatus}"></section></div>
+
+<div th:if="${!admin and page=='correction-request'}"><section th:replace="~{fragments/correction :: requestForm}"></section></div>
+<div th:if="${managerView and page=='leave-calendar'}"><section th:replace="~{fragments/department-reports :: calendar}"></section></div>
+<div th:if="${managerView and page=='monthly-report'}"><section th:replace="~{fragments/department-reports :: monthly}"></section></div>
+<section class="cards" th:if="${page=='main' and (!admin or managerView)}">
+<div class="card"><div class="card-label" th:text="${admin ? '부서 재직 인원' : '잔여 연차 (' + year + '년)'}"></div><div class="card-value" th:text="${admin ? employeeCount + '명' : remaining + '일'}"></div><small th:unless="${admin}">승인 대기 신청 포함 · 근무일 기준</small></div>
+<div class="card"><div class="card-label">결재 대기</div><div class="card-value" th:text="${pending} + '건'"></div><a th:href="@{${base + (admin ? '/approval' : '/request-status')}}">요청 확인 →</a></div>
+<div class="card"><div class="card-label" th:text="${admin ? '금일 출근 기록' : '금일 근무 상태'}"></div><div th:class="${admin ? 'card-value' : 'badge'}" th:text="${admin ? attendedCount + '명' : (todayAttendance==null ? '출근 전' : todayAttendance.status)}"></div></div>
+</section>
+
+<div th:if="${page=='request-status' or (managerView and (page=='approval' or page=='main'))}"><section th:replace="~{fragments/correction :: requestList}"></section></div>
+
+<section class="cards" th:if="${admin and !managerView and page=='main'}">
+<div class="card"><div class="card-label">재직 계정</div><div class="card-value" th:text="${employeeCount}+'명'"></div><a th:href="@{/admin/employee-manage}">직원·권한 관리 →</a></div>
+<div class="card"><div class="card-label">부서 관리 권한자</div><div class="card-value" th:text="${managerCount}+'명'"></div><small>직급과 별도로 권한을 지정합니다.</small></div>
+<div class="card"><div class="card-label">사내 공지</div><a th:href="@{/admin/notification}">공지 등록·관리 →</a></div>
+</section>
+<div class="attendance-overview" th:if="${!admin and page=='main'}">
+  <section class="panel today-attendance" aria-labelledby="today-attendance-title">
+    <h2 id="today-attendance-title">금일 출퇴근 현황</h2>
+    <div class="attendance-times">
+      <div><span class="muted">출근 시간</span><strong th:text="${todayAttendance==null ? '--:--' : #temporals.format(todayAttendance.checkIn,'HH:mm:ss')}"></strong></div>
+      <div><span class="muted">퇴근 시간</span><strong th:text="${todayAttendance==null or todayAttendance.checkOut==null ? '--:--' : #temporals.format(todayAttendance.checkOut,'HH:mm:ss')}"></strong></div>
+    </div>
+    <p class="muted">09:00 이후 출근은 지각, 18:00 이전 퇴근은 조퇴로 기록됩니다.</p>
+    <div class="actions">
+      <form th:action="@{/employee/check-in}" method="post"><button th:disabled="${todayAttendance!=null}">출근하기</button></form>
+      <form th:action="@{/employee/check-out}" method="post"><button class="secondary" th:disabled="${todayAttendance==null or todayAttendance.checkOut!=null}">퇴근하기</button></form>
+    </div>
+  </section>
+  <section class="panel recent-attendance" aria-labelledby="recent-attendance-title">
+    <div class="recent-attendance-heading"><h2 id="recent-attendance-title">최근 출퇴근 내역</h2><span class="muted">최근 7건</span></div>
+    <div class="table-wrap attendance-history">
+      <table>
+        <thead><tr><th scope="col">날짜</th><th scope="col">출근</th><th scope="col">퇴근</th><th scope="col">상태</th></tr></thead>
+        <tbody>
+          <tr th:each="a : ${attendanceRecords}">
+            <td th:text="${a.workDate}"></td>
+            <td th:text="${#temporals.format(a.checkIn,'HH:mm:ss')}"></td>
+            <td th:text="${a.checkOut==null ? '-' : #temporals.format(a.checkOut,'HH:mm:ss')}"></td>
+            <td class="attendance-status"><span class="badge" th:text="${a.status}"></span></td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(attendanceRecords)}"><td colspan="4" class="empty">아직 출퇴근 기록이 없습니다.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<section class="panel" th:if="${admin and page=='attendance-manage'}"><h2>날짜별 근태 내역</h2>
+<form class="toolbar" th:if="${admin}" th:action="@{/manager/attendance-manage}" method="get"><label>조회일<input type="date" name="date" th:value="${date}" required></label><label>직원 검색<input name="query" th:value="${query}" placeholder="이름, 로그인 ID"></label><button>조회</button></form>
+<div class="table-wrap"><table><thead><tr><th>날짜</th><th>직원</th><th>부서</th><th>출근</th><th>퇴근</th><th>상태</th></tr></thead><tbody><tr th:each="a : ${attendanceRecords}"><td th:text="${a.workDate}"></td><td th:text="${a.employee.displayName}"></td><td th:text="${a.employee.department}"></td><td th:text="${#temporals.format(a.checkIn,'HH:mm:ss')}"></td><td th:text="${a.checkOut==null ? '-' : #temporals.format(a.checkOut,'HH:mm:ss')}"></td><td><span class="badge" th:text="${a.status}"></span></td></tr><tr th:if="${#lists.isEmpty(attendanceRecords)}"><td colspan="6" class="empty">출퇴근 기록이 없습니다.</td></tr></tbody></table></div></section>
+
+<section class="panel" th:if="${page=='leave-request'}"><h2>휴가 신청서</h2><p class="muted">연차 잔여 <b th:text="${remaining}"></b>일 · 주말·등록된 공휴일 및 회사 휴무일은 제외됩니다. 병가는 연차를 차감하지 않습니다.</p>
+<form class="form-grid" th:action="@{/employee/leave}" method="post"><label>휴가 종류<select name="kind"><option th:each="kind : ${kinds}" th:value="${kind}" th:text="${kind.label}"></option></select></label><label>결재자<select name="approverId" required><option value="">결재자 선택</option><option th:each="approver : ${approvers}" th:value="${approver.id}" th:text="${approver.name} + ' · ' + ${approver.department}"></option></select></label><label>시작일<input name="startDate" type="date" th:min="${today}" required></label><label>종료일<input name="endDate" type="date" th:min="${today}" required></label><label class="full">신청 사유<textarea name="reason" maxlength="1000" required placeholder="휴가 사유를 입력해주세요."></textarea></label><div class="full"><button th:disabled="${#lists.isEmpty(approvers)}">휴가 신청</button><p class="alert" th:if="${#lists.isEmpty(approvers)}">같은 부서의 결재자가 없습니다. 웹 관리자에게 부서 관리 권한자 등록을 요청해주세요. 본인 결재는 불가합니다.</p></div></form></section>
+
+<section class="panel" th:if="${page=='request-status' or page=='approval' or (managerView and page=='main')}"><h2 th:text="${admin ? '승인 대기 요청' : '내 휴가 신청 내역'}"></h2><div class="table-wrap"><table><thead><tr><th th:if="${admin}">신청자</th><th>종류</th><th>기간</th><th>차감</th><th>결재자</th><th>상태</th><th>사유 / 처리 의견</th><th>처리</th></tr></thead><tbody>
+<tr th:each="r : ${requests}"><td th:if="${admin}" th:text="${r.employee.displayName} + ' · ' + ${r.employee.department}"></td><td th:text="${r.kind.label}"></td><td><span th:text="${r.startDate}"></span><br><small th:text="'~ ' + ${r.endDate}"></small></td><td th:text="${r.days} + '일'"></td><td th:text="${r.approver!=null ? r.approver.displayName : (r.reviewer!=null ? r.reviewer.displayName : '부서 공통')}"></td><td><span class="badge" th:classappend="${r.status}" th:text="${r.status.label}"></span></td><td class="wrap"><span th:text="${r.reason}"></span><br><small th:text="${r.reviewComment}"></small></td><td><a class="amendment-link" th:if="${!admin and r.status.name()=='APPROVED'}" th:href="@{/employee/request-status(type='LEAVE',requestId=${r.id})}">취소·변경 요청</a><form th:if="${!admin and r.status.name()=='PENDING'}" th:action="@{/employee/leave/{id}/cancel(id=${r.id})}" method="post"><button class="secondary">신청 취소</button></form><form class="review-form" th:if="${admin}" th:action="@{/manager/leave/{id}/review(id=${r.id})}" method="post"><input name="comment" maxlength="500" placeholder="반려 시 사유 필수" aria-label="처리 의견"><button name="approve" value="true">승인</button><button class="danger" name="approve" value="false">반려</button></form></td></tr>
+<tr th:if="${#lists.isEmpty(requests)}"><td colspan="7" class="empty">신청 내역이 없습니다.</td></tr></tbody></table></div></section>
+
+<div th:if="${!admin and page=='overtime-request'}"><section th:replace="~{fragments/overtime :: requestForm}"></section></div>
+<div th:if="${page=='request-status' or (managerView and (page=='approval' or page=='main'))}"><section th:replace="~{fragments/overtime :: requestList}"></section></div>
+<div th:if="${!admin and page=='schedule'}"><section th:replace="~{fragments/calendar :: calendar}"></section></div>
+<section th:if="${admin and page=='schedule-assign'}">
+<div class="panel"><h2 th:text="${admin ? '직원 일정 배정' : '개인 일정 등록'}"></h2><form class="form-grid" th:action="@{${base + '/schedule'}}" method="post">
+<label th:if="${admin}">배정 대상<select name="employeeId" required><option th:each="e : ${activeEmployees}" th:value="${e.id}" th:text="${e.name} + ' · ' + ${e.department}"></option></select></label><label>일정명<input name="title" maxlength="120" required placeholder="예: 팀 회의, 주간 근무"></label><label>날짜<input name="eventDate" type="date" required th:value="${date}"></label><label>시작 시간<input type="time" name="startTime"></label><label>종료 시간<input type="time" name="endTime"></label><label class="full">메모<textarea name="memo" maxlength="500"></textarea></label><div class="full"><small>시간을 모두 비우면 종일 일정입니다. 배정 일정은 출퇴근 판정 기준을 변경하지 않습니다.</small><div class="actions"><button th:text="${admin ? '일정 배정' : '일정 등록'}"></button></div></div></form></div>
+<div class="panel"><h2>월별 일정</h2><form class="toolbar" th:action="@{${base + '/' + page}}" method="get"><label>조회할 월의 날짜<input type="date" name="date" th:value="${date}" required></label><button>조회</button></form><div class="table-wrap"><table><thead><tr><th>날짜</th><th th:if="${admin}">직원</th><th>일정</th><th>시간</th><th>구분</th><th>메모</th><th>관리</th></tr></thead><tbody><tr th:each="s : ${schedules}"><td th:text="${s.eventDate}"></td><td th:if="${admin}" th:text="${s.employee.displayName}"></td><td th:text="${s.title}"></td><td th:text="${s.startTime==null ? '종일' : s.startTime + ' ~ ' + s.endTime}"></td><td><span class="badge" th:text="${s.assigned ? '부서 배정' : '개인'}"></span></td><td class="wrap" th:text="${s.memo}"></td><td><form th:if="${admin or !s.assigned}" th:action="@{${base + '/schedule/' + s.id + '/delete'}}" method="post"><button class="secondary">삭제</button></form></td></tr><tr th:if="${#lists.isEmpty(schedules)}"><td colspan="7" class="empty">이번 달 등록된 일정이 없습니다.</td></tr></tbody></table></div></div></section>
+
+<section class="panel" th:if="${page=='mypage'}"><h2>내 정보</h2><div class="profile-identity profile-own"><span th:replace="~{fragments/profile :: avatar(${me})}"></span><strong th:text="${me.name}"></strong></div><div th:replace="~{fragments/profile :: editor(${me}, 'mypage')}"></div><div class="form-grid"><label>사번<input th:value="${me.id}" disabled></label><label>이름<input th:value="${me.name}" disabled></label><label>부서<input th:value="${me.department}" disabled></label><label>직급<input th:value="${me.positionName}" disabled></label></div><hr style="border:0;border-top:1px solid #eee;margin:25px 0"><form class="form-grid" th:action="@{/employee/profile}" method="post"><label>이메일<input type="email" name="email" th:value="${me.email}" maxlength="120"></label><label>연락처<input name="phone" th:value="${me.phone}" maxlength="30"></label><label>현재 비밀번호<input type="password" name="currentPassword" autocomplete="current-password"></label><label>새 비밀번호<input type="password" name="newPassword" autocomplete="new-password" minlength="8"></label><div class="full"><p class="muted">비밀번호를 변경할 때만 현재·새 비밀번호를 입력하세요.</p><button>정보 저장</button></div></form></section>
+
+<section th:if="${page=='employee-manage'}"><div th:replace="~{fragments/employees :: management}"></div></section>
+
+<section class="panel" th:if="${admin and page=='notification'}"><h2>공지사항 등록</h2><form class="form-grid" th:action="@{/admin/notices}" method="post"><label class="full">제목<input name="title" maxlength="160" required></label><label class="full">내용<textarea name="content" maxlength="2000" required></textarea></label><div class="full"><button>공지 등록</button></div></form></section>
+<section class="panel" th:if="${(!managerView and page=='main') or page=='notification'}"><h2>사내 공지사항</h2><article class="notice" th:each="n : ${notices}"><h3 th:text="${n.title}"></h3><small th:text="${#temporals.format(n.createdAt,'yyyy-MM-dd HH:mm')} + ' · ' + ${n.author.displayName}"></small><p th:text="${n.content}"></p></article><p class="empty" th:if="${#lists.isEmpty(notices)}">등록된 공지가 없습니다.</p></section>
+<datalist id="position-options"><option value="사원"></option><option value="주임"></option><option value="대리"></option><option value="과장"></option><option value="차장"></option><option value="부장"></option><option value="본부장"></option></datalist></main></div></div><div th:replace="~{fragments/chat :: widget}"></div></body></html>

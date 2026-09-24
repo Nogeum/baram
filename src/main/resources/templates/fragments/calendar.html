@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+<section th:fragment="calendar" class="schedule-calendar" aria-label="내 일정 캘린더">
+  <link rel="stylesheet" th:href="@{/css/calendar.css}">
+  <script defer th:src="@{/js/calendar.js}"></script>
+  <div class="panel calendar-panel">
+    <div class="calendar-header">
+      <div class="calendar-navigation">
+        <a class="month-link" th:href="@{/employee/schedule(date=${previousMonth})}" aria-label="이전 달">‹</a>
+        <h2 th:text="${calendarMonth.year} + '년 ' + ${calendarMonth.monthValue} + '월'"></h2>
+        <a class="month-link" th:href="@{/employee/schedule(date=${nextMonth})}" aria-label="다음 달">›</a>
+        <a class="calendar-today" th:href="@{/employee/schedule}">오늘</a>
+      </div>
+      <button type="button" id="addSchedule" th:attr="data-date=${date}">+ 일정 등록</button>
+    </div>
+    <p class="muted calendar-guide">날짜를 눌러 일정을 등록하고, 일정을 눌러 상세 내용을 확인하세요.</p>
+    <div class="calendar-scroll" tabindex="0" aria-label="월간 캘린더, 좁은 화면에서는 가로로 스크롤할 수 있습니다">
+      <div class="calendar-weekdays" aria-hidden="true"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+      <div class="calendar-grid">
+        <article class="calendar-day" th:each="day : ${calendarDays}"
+                 th:classappend="${!day.currentMonth ? 'outside-month' : (day.date.equals(today) ? 'is-today' : '')}"
+                 th:attr="data-date=${day.date}">
+          <button type="button" class="calendar-date" th:disabled="${!day.currentMonth}"
+                  th:attr="data-add-date=${day.date},aria-label=${day.date} + ' 일정 등록'"
+                  th:text="${day.date.dayOfMonth}"></button>
+          <div class="calendar-events">
+            <button type="button" class="calendar-event" th:each="event : ${day.events}"
+                    th:style="|--event-color: ${event.color.hex}|"
+                    th:title="${event.title}"
+                    th:attr="data-title=${event.title},data-date=${event.eventDate},data-time=${event.startTime==null ? '종일' : #temporals.format(event.startTime,'HH:mm') + ' ~ ' + #temporals.format(event.endTime,'HH:mm')},data-memo=${event.memo},data-assigned=${event.assigned},data-color=${event.color},data-color-label=${event.color.label},data-color-hex=${event.color.hex},data-start=${event.startTime==null ? '' : #temporals.format(event.startTime,'HH:mm')},data-end=${event.endTime==null ? '' : #temporals.format(event.endTime,'HH:mm')},data-edit-url=@{/employee/schedule/{id}/edit(id=${event.id})},data-delete-url=@{/employee/schedule/{id}/delete(id=${event.id})}">
+              <span class="calendar-event-time" th:text="${event.startTime==null ? '종일' : #temporals.format(event.startTime,'HH:mm')}"></span>
+              <span class="calendar-event-title" th:text="${event.title}"></span>
+              <span class="calendar-assigned" th:if="${event.assigned}">배정</span>
+            </button>
+          </div>
+        </article>
+      </div>
+    </div>
+    <p class="calendar-empty muted" th:if="${#lists.isEmpty(schedules)}">이번 달 등록된 일정이 없습니다. ‘일정 등록’ 버튼으로 첫 일정을 추가하세요.</p>
+  </div>
+
+  <dialog id="scheduleModal" class="schedule-dialog" aria-labelledby="scheduleModalTitle">
+    <div class="dialog-heading"><h2 id="scheduleModalTitle">개인 일정 등록</h2><button type="button" class="dialog-close" data-close-dialog aria-label="닫기">×</button></div>
+    <form class="form-grid" id="scheduleForm" th:action="@{/employee/schedule}" method="post">
+      <label class="full">일정명<input id="scheduleTitle" name="title" maxlength="120" required placeholder="예: 개인 일정, 팀 회의" autofocus></label>
+      <label class="full">날짜<input id="scheduleDate" name="eventDate" type="date" required></label>
+      <label>시작 시간<input name="startTime" type="time" id="scheduleStart"></label>
+      <label>종료 시간<input name="endTime" type="time" id="scheduleEnd"></label>
+      <small class="full">시간을 모두 비우면 종일 일정으로 등록됩니다.</small>
+      <label class="full">메모<textarea name="memo" maxlength="500" placeholder="일정 내용을 입력하세요."></textarea></label>
+      <fieldset class="full schedule-colors"><legend>색상</legend><div class="color-options">
+        <label class="color-option" th:each="color : ${scheduleColors}" th:style="|--event-color: ${color.hex}|">
+          <input type="radio" name="color" th:value="${color}" th:attr="aria-label=${color.label}" th:checked="${color.name()=='BLUE'}" required>
+          <span class="color-dot" aria-hidden="true"></span>
+        </label>
+      </div></fieldset>
+      <div class="full dialog-actions"><button type="button" class="secondary" data-close-dialog>취소</button><button type="submit">일정 저장</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="scheduleDetail" class="schedule-dialog" aria-labelledby="scheduleDetailTitle">
+    <div class="dialog-heading"><h2 id="scheduleDetailTitle">일정 상세</h2><button type="button" class="dialog-close" data-close-dialog aria-label="닫기">×</button></div>
+    <h3 id="detailTitle"></h3>
+    <dl class="schedule-detail"><dt>날짜</dt><dd id="detailDate"></dd><dt>시간</dt><dd id="detailTime"></dd><dt>구분</dt><dd id="detailKind"></dd><dt>색상</dt><dd><span id="detailColor" class="color-dot detail-color" role="img"></span></dd><dt>메모</dt><dd id="detailMemo"></dd></dl>
+    <div class="dialog-actions"><button type="button" class="secondary" data-close-dialog>닫기</button>
+      <button type="button" id="editSchedule">일정 수정</button>
+      <form id="scheduleDeleteForm" method="post" th:action="@{/employee/schedule/0/delete}"><button type="submit" class="danger">일정 삭제</button></form>
+    </div>
+  </dialog>
+  <noscript><p class="alert">일정 등록 팝업을 사용하려면 브라우저에서 JavaScript를 켜주세요.</p></noscript>
+</section>
+</body></html>

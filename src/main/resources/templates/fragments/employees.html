@@ -1,0 +1,77 @@
+<!DOCTYPE html><html lang="ko" xmlns:th="http://www.thymeleaf.org"><body>
+<div th:fragment="management" class="employee-management">
+  <link rel="stylesheet" th:href="@{/css/employees.css}">
+  <script defer th:src="@{/js/employees.js}"></script>
+  <div th:replace="~{fragments/account-delete :: confirmation}"></div>
+  <form class="employee-filters" th:action="@{/admin/employee-manage}" method="get">
+    <label class="employee-search"><span class="sr-only">직원 검색</span><input name="query" th:value="${query}" placeholder="이름, 로그인 ID, 부서 검색"><button type="submit" aria-label="직원 검색"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg></button></label>
+    <label><span class="sr-only">부서 필터</span><select name="departmentFilter"><option value="">전체 부서</option><option th:each="dept : ${departmentOptions}" th:value="${dept}" th:text="${dept}" th:selected="${dept==departmentFilter}"></option></select></label>
+    <label><span class="sr-only">권한 필터</span><select name="roleFilter"><option value="">전체 권한</option><option value="EMPLOYEE" th:selected="${roleFilter=='EMPLOYEE'}">직원</option><option value="ADMIN" th:selected="${roleFilter=='ADMIN'}">관리자</option></select></label>
+    <label><span class="sr-only">상태 필터</span><select name="activeFilter"><option value="">전체 상태</option><option value="true" th:selected="${activeFilter=='true'}">재직</option><option value="false" th:selected="${activeFilter=='false'}">비활성</option></select></label>
+    <a th:href="@{/admin/employee-manage}" class="filter-reset">초기화</a>
+  </form>
+  <section class="employee-list" aria-label="직원 목록">
+    <div class="employee-list-heading"><span>전체 <strong th:text="${#lists.size(employees)}"></strong>명</span><small>직원 정보와 권한을 관리하세요.</small></div>
+    <div class="table-wrap"><table class="employee-table"><thead><tr><th>이름</th><th>로그인 ID</th><th>부서</th><th>직급</th><th>상태</th><th>시스템 권한</th><th>부서 관리 권한</th><th>관리</th></tr></thead><tbody>
+      <tr th:each="e, row : ${employees}" data-employee-row th:attr="data-profile-id=${e.id},data-has-profile=${e.profileFileId!=null}">
+        <td><div class="employee-identity"><span th:replace="~{fragments/profile :: avatar(${e})}"></span><strong th:text="${e.name}"></strong></div></td>
+        <td class="employee-login" th:text="${e.loginId}"></td><td th:text="${e.department}"></td><td th:text="${e.positionName}"></td>
+        <td><span class="employee-pill" th:classappend="${e.active ? 'is-active' : 'is-inactive'}" th:text="${e.active ? '재직' : '비활성'}"></span></td>
+        <td><span class="employee-pill" th:classappend="${e.role.name()=='ADMIN' ? 'is-admin' : 'is-employee'}" th:text="${e.role.name()=='ADMIN' ? '관리자' : '직원'}"></span></td>
+        <td><span th:text="${e.role.name()=='ADMIN' ? '전체' : (e.departmentManager ? '소속 부서' : '없음')}"></span></td>
+        <td><button type="button" class="employee-manage-button" th:attr="aria-label=${e.name}+' 직원 정보 수정',data-edit-employee=@{/admin/employees/{id}(id=${e.id})},data-name=${e.name},data-login=${e.loginId},data-department=${e.department},data-position=${e.positionName},data-role=${e.role},data-manager=${e.departmentManager},data-active=${e.active},data-annual=${e.annualUnits / 2},data-self=${e.id==me.id}">관리</button></td>
+      </tr>
+      <tr th:if="${#lists.isEmpty(employees)}"><td colspan="8" class="empty">검색 조건에 맞는 직원이 없습니다.</td></tr>
+    </tbody></table></div>
+    <nav id="employeePagination" class="employee-pagination" aria-label="직원 목록 페이지" hidden><span id="employeePageSummary" aria-live="polite"></span><button type="button" class="secondary" id="employeePrevious" aria-label="이전 페이지">‹</button><span id="employeePageNumber"></span><button type="button" class="secondary" id="employeeNext" aria-label="다음 페이지">›</button></nav>
+  </section>
+  <datalist id="employee-departments"><option th:each="dept : ${departmentOptions}" th:value="${dept}"></option></datalist>
+
+  <dialog id="employeeCreateDrawer" class="employee-drawer" aria-labelledby="employeeCreateTitle">
+    <div class="employee-drawer-heading"><h2 id="employeeCreateTitle">신규 직원 등록</h2><button type="button" data-close-employee aria-label="등록 닫기">×</button></div>
+    <div class="employee-tabs" role="tablist" aria-label="직원 등록 단계"><button type="button" id="employeeBasicTab" role="tab" aria-selected="true" aria-controls="employeeBasicPanel" data-employee-tab="employeeBasicPanel">기본 정보</button><button type="button" id="employeePermissionsTab" role="tab" aria-selected="false" aria-controls="employeePermissionsPanel" tabindex="-1" data-employee-tab="employeePermissionsPanel">권한 설정</button></div>
+    <form id="employeeCreateForm" th:action="@{/admin/employees}" method="post">
+      <div class="employee-drawer-body">
+        <div id="employeeBasicPanel" role="tabpanel" aria-labelledby="employeeBasicTab">
+          <h3>기본 정보</h3><div class="form-grid">
+            <label class="full">이름 <span class="required-mark">*</span><input name="name" maxlength="80" required placeholder="이름을 입력하세요" autocomplete="off"></label>
+            <label class="full">로그인 ID <span class="required-mark">*</span><input name="loginId" pattern="[A-Za-z0-9._-]{3,60}" maxlength="60" required autocomplete="off" placeholder="영문, 숫자, 점, 밑줄, 하이픈 3~60자"></label>
+            <label>부서 <span class="required-mark">*</span><input name="department" list="employee-departments" maxlength="80" required placeholder="부서 선택 또는 입력"></label>
+            <label>직급 <span class="required-mark">*</span><input name="position" list="position-options" maxlength="40" required placeholder="직급 선택 또는 입력"></label>
+            <label class="full">이메일<input type="email" name="email" maxlength="120" placeholder="이메일을 입력하세요"></label>
+            <label class="full">연락처<input name="phone" maxlength="30" placeholder="연락처를 입력하세요"></label>
+            <label class="full">입사일<input type="date" name="hireDate"></label>
+            <label class="full">초기 비밀번호 <span class="required-mark">*</span><input type="password" name="password" minlength="8" required autocomplete="new-password" placeholder="8자 이상 입력하세요"></label>
+          </div><p class="employee-helper">초기 비밀번호는 직원에게 직접 전달해주세요. 이메일은 자동 발송되지 않습니다.</p>
+          <button type="button" class="employee-permissions-link" data-go-permissions>권한 설정 <span aria-hidden="true">›</span></button>
+        </div>
+        <div id="employeePermissionsPanel" role="tabpanel" aria-labelledby="employeePermissionsTab" hidden>
+          <h3>권한 설정</h3><div class="form-grid">
+            <label class="full">시스템 권한<select name="role" id="employeeCreateRole"><option value="EMPLOYEE">직원</option><option value="ADMIN">관리자</option></select></label>
+            <label class="full">부서 관리 권한<select name="departmentManager" id="employeeCreateManager"><option value="false">없음</option><option value="true">소속 부서 관리</option></select></label>
+          </div><p class="employee-helper">직원 계정에 소속 부서의 근태 조회·결재 권한을 부여합니다. 본부장도 부서 관리 기능을 사용하려면 이 권한이 필요합니다.</p>
+        </div>
+      </div>
+      <div class="employee-drawer-footer"><button type="button" class="secondary" data-close-employee>취소</button><button type="submit">직원 등록</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="employeeEditDrawer" class="employee-drawer" aria-labelledby="employeeEditTitle">
+    <div class="employee-drawer-heading"><h2 id="employeeEditTitle">직원 정보 수정</h2><button type="button" data-close-employee aria-label="수정 닫기">×</button></div>
+    <form id="employeeEditForm" th:action="@{/admin/employees/0}" method="post">
+      <div class="employee-drawer-body"><p id="employeeEditIdentity" class="employee-helper"></p><div class="form-grid">
+        <label class="full">이름<input name="name" maxlength="80" required></label>
+        <label>부서<input name="department" list="employee-departments" maxlength="80" required></label>
+        <label>직급<input name="position" list="position-options" maxlength="40" required></label>
+        <label class="full" id="employeeEditManagerLabel">부서 관리 권한<select name="departmentManager"><option value="false">없음</option><option value="true">소속 부서 관리</option></select></label>
+        <label>연간 연차 일수<input name="annualDays" type="number" min="0" max="365" required></label>
+        <label>재직 상태<select name="active"><option value="true">재직</option><option value="false">비활성</option></select></label>
+      </div><div class="employee-delete-section"><h3>계정 삭제</h3><p class="muted">출퇴근·결재 등 업무 기록은 보존됩니다. 삭제한 계정은 복구할 수 없습니다.</p><button type="button" id="employeeEditDelete" class="danger" data-delete-account="" data-login="" data-name="">계정 삭제</button><small id="employeeDeleteSelf" hidden>본인 계정은 삭제할 수 없습니다.</small></div></div>
+      <div class="employee-drawer-footer"><button type="button" class="secondary" data-close-employee>취소</button><button type="submit">변경 저장</button></div>
+    </form>
+    <section class="employee-drawer-body"><h3>프로필 사진</h3><p class="muted">사진은 직원 정보와 별도로 저장됩니다.</p>
+      <div class="profile-editor"><form id="employeePhotoForm" class="profile-upload" th:action="@{/profiles/0/image}" method="post" enctype="multipart/form-data"><input type="hidden" name="destination" value="employees"><label>사진 선택<input type="file" name="file" accept="image/jpeg,image/png" required></label><p class="muted">JPG·PNG, 최대 5MB · 1,600만 화소 이하. 가운데를 잘라 표시합니다.</p><button>사진 저장</button></form>
+      <form id="employeePhotoDeleteForm" th:action="@{/profiles/0/image/delete}" method="post" hidden><input type="hidden" name="destination" value="employees"><button class="secondary">사진 삭제</button></form></div>
+    </section>
+  </dialog>
+</div></body></html>

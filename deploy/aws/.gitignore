@@ -1,0 +1,5 @@
+.env
+.env.pc-oracle
+*.tar
+*.pem
+application-oracle-local.properties

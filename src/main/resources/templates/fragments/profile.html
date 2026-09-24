@@ -1,0 +1,12 @@
+<!DOCTYPE html><html lang="ko" xmlns:th="http://www.thymeleaf.org"><body>
+<span th:fragment="avatar(e)" class="profile-avatar" aria-hidden="true"><span th:text="${#strings.substring(e.name,0,1)}"></span><img th:if="${e.profileImageUrl!=null}" th:src="${e.profileImageUrl}" alt="" loading="lazy"></span>
+<div th:fragment="editor(e, destination)" class="profile-editor">
+  <form th:action="@{/profiles/{id}/image(id=${e.id})}" method="post" enctype="multipart/form-data" class="profile-upload">
+    <input type="hidden" name="destination" th:value="${destination}">
+    <label>프로필 사진<input type="file" name="file" accept="image/jpeg,image/png" required></label>
+    <p class="muted">JPG·PNG, 최대 5MB · 1,600만 화소 이하. 가운데를 정사각형으로 잘라 표시합니다.</p>
+    <button>사진 저장</button>
+  </form>
+  <form th:if="${e.profileFileId!=null}" th:action="@{/profiles/{id}/image/delete(id=${e.id})}" method="post"><input type="hidden" name="destination" th:value="${destination}"><button class="secondary">사진 삭제</button></form>
+</div>
+</body></html>

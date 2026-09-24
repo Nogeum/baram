@@ -1,0 +1,15 @@
+<!DOCTYPE html><html lang="ko" xmlns:th="http://www.thymeleaf.org"><body>
+<div th:fragment="confirmation">
+  <link rel="stylesheet" th:href="@{/css/account-delete.css}">
+  <script defer th:src="@{/js/account-delete.js}"></script>
+  <dialog id="accountDeleteDialog" aria-labelledby="accountDeleteTitle" aria-describedby="accountDeleteDescription">
+    <h2 id="accountDeleteTitle">계정 삭제</h2>
+    <p id="accountDeleteTarget"></p>
+    <p id="accountDeleteDescription">계정은 목록에서 제거되고 로그인과 관리 권한이 해제됩니다. 출퇴근·결재 등 기존 기록은 보존하며 ‘삭제된 계정’으로 표시합니다. 본인의 승인 대기 신청은 취소됩니다. 삭제 후 재활성화와 같은 로그인 ID의 재사용은 지원하지 않습니다.</p>
+    <form id="accountDeleteForm" th:action="@{/admin/employees/0/delete}" method="post">
+      <label>확인을 위해 로그인 ID를 입력해주세요.<input name="confirmLoginId" id="accountDeleteConfirm" autocomplete="off" maxlength="60" required></label>
+      <div class="actions"><button type="button" class="secondary" id="accountDeleteCancel">취소</button><button type="submit" class="danger" id="accountDeleteSubmit" disabled>기록 보존 후 삭제</button></div>
+    </form>
+  </dialog>
+</div>
+</body></html>

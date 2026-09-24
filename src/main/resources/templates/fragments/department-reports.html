@@ -1,0 +1,34 @@
+<!DOCTYPE html><html lang="ko" xmlns:th="http://www.thymeleaf.org"><body>
+<section th:fragment="calendar" class="panel">
+  <link rel="stylesheet" th:href="@{/css/department-reports.css}">
+  <div class="report-heading"><div><h2 th:text="${leaveCalendar.department}+' 부서 캘린더'"></h2><p class="muted">승인된 휴가와 부서원의 업무를 함께 확인하세요. 업무는 마감일에 표시됩니다.</p></div><div class="calendar-legend"><span class="badge" th:text="'승인 휴가 '+${leaveCalendar.requestCount}+'건'"></span><span class="badge task-count" th:text="'업무 '+${leaveCalendar.taskCount}+'건'"></span></div></div>
+  <form class="toolbar" th:action="@{/manager/leave-calendar}" method="get"><label>조회 월<input type="month" name="month" th:value="${leaveCalendar.month}" required></label><button>조회</button></form>
+  <div class="month-navigation"><a th:href="@{/manager/leave-calendar(month=${leaveCalendar.month.minusMonths(1)})}" aria-label="이전 달">← 이전 달</a><strong th:text="${leaveCalendar.month}"></strong><a th:href="@{/manager/leave-calendar(month=${leaveCalendar.month.plusMonths(1)})}" aria-label="다음 달">다음 달 →</a></div>
+  <div class="leave-calendar-scroll"><div class="department-calendar">
+    <div class="weekday" th:each="day : ${ {'일','월','화','수','목','금','토'} }" th:text="${day}"></div>
+    <article class="leave-day" th:each="day : ${leaveCalendar.days}" th:classappend="${!day.currentMonth ? 'outside' : (day.date.equals(today) ? 'today' : '')}">
+      <time th:datetime="${day.date}" th:text="${day.date.dayOfMonth}"></time>
+      <div class="leave-person" th:each="item : ${day.items}"><strong th:text="${item.name}"></strong><span th:text="${item.kind}"></span></div>
+      <div class="department-task" th:each="task : ${day.tasks}" th:classappend="${task.status}">
+        <div class="department-task-meta"><strong th:text="${task.name}"></strong><span th:text="${task.statusLabel}"></span></div>
+        <a th:if="${task.own}" th:href="@{/groupware/tasks/{id}(id=${task.id})}" th:text="${task.title}"></a>
+        <span th:unless="${task.own}" th:text="${task.title}"></span>
+      </div>
+    </article>
+  </div></div>
+  <p class="empty" th:if="${leaveCalendar.requestCount==0 and leaveCalendar.taskCount==0}">이번 달 승인된 휴가와 등록된 업무가 없습니다.</p>
+</section>
+<section th:fragment="monthly" class="panel">
+  <link rel="stylesheet" th:href="@{/css/department-reports.css}">
+  <div class="report-heading"><div><h2 th:text="${monthlyReport.department}+' 월별 근태 보고서'"></h2><p class="muted">선택한 월의 오늘까지 집계합니다. 과거 월은 월 전체를 집계합니다.</p></div>
+    <a class="button" th:href="@{/manager/monthly-report.xlsx(month=${monthlyReport.month},query=${query})}">엑셀 다운로드</a></div>
+  <form class="toolbar" th:action="@{/manager/monthly-report}" method="get"><label>조회 월<input type="month" name="month" th:value="${monthlyReport.month}" required></label><label>직원 검색<input name="query" th:value="${query}" placeholder="이름, 로그인 ID"></label><button>조회</button></form>
+  <p class="report-description">현재 소속 부서 기준 · 출근 기록이 있는 날을 근무일로 집계 · 점심 12~13시 중 겹치는 시간 제외 · 완료된 일별 근무의 8시간 초과분을 초과근무로 집계합니다.</p>
+  <div class="table-wrap"><table class="monthly-table"><thead><tr><th>직원</th><th>상태</th><th>근무일</th><th>총 근무시간</th><th>초과근무</th><th>지각</th><th>조퇴</th><th>결근</th><th>휴가일수</th><th>미퇴근</th></tr></thead><tbody>
+    <tr th:each="row : ${monthlyReport.rows}"><td><strong th:text="${row.employee.displayName}"></strong><br><small th:text="${row.employee.loginId}"></small></td><td th:text="${row.employee.deleted ? '삭제' : (row.employee.active ? '재직' : '비활성')}"></td>
+      <td th:text="${row.totals.workDays}+'일'"></td><td th:text="${row.totals.workTime}"></td><td th:text="${row.totals.overtime}"></td><td th:text="${row.totals.lateDays}"></td><td th:text="${row.totals.earlyDays}"></td><td th:text="${row.totals.absentDays}"></td><td th:text="${row.totals.leaveDays}+'일'"></td><td th:text="${row.totals.missingCheckouts}"></td></tr>
+    <tr th:if="${#lists.isEmpty(monthlyReport.rows)}"><td colspan="10" class="empty">조회 조건에 해당하는 직원이 없습니다.</td></tr>
+  </tbody></table></div>
+  <p class="report-description">휴가일수는 승인된 병가·반차를 포함합니다. 공휴일은 평일로 계산합니다. 미퇴근 기록은 근무시간에서 제외하며, 입사 전·삭제 처리일 다음 날 이후에는 결근을 계산하지 않습니다. 비활성 계정은 비활성 일자 이력이 없어 입사일과 실제 기록을 기준으로 계산합니다. 엑셀의 근무시간 단위는 합산 가능한 분입니다.</p>
+</section>
+</body></html>
