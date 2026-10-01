@@ -7,5 +7,7 @@ import java.util.*;
 import java.time.*;
 public interface NoticeRepository extends JpaRepository<Notice, Long> {
 List<Notice> findTop20ByOrderByCreatedAtDesc();
+@Lock(LockModeType.PESSIMISTIC_WRITE)
+@Query("select n from Notice n where n.id=:id")
+Optional<Notice> lockById(@Param("id") Long id);
 }
-

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>근태관리 시스템 - 스케줄 배정</title>
+    <style>
+
+           .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgb(26, 40, 90);
+            color: white;
+            padding: 10px 20px;
+           }
+
+           .topbar-title {
+            font-size: 24px;
+            font-weight: bold;
+           }
+           .topbar-user {
+            font-size: 14px;
+           }
+           .topbar-user a {
+            color: white;
+           }
+           .layout  {
+            display: flex;
+           }
+           .sidebar {
+            width: 200px;
+            background-color: #f0f0f0;
+            padding: 0;
+            font-size: 16px;
+           }
+           .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+           }
+           .sidebar li  {
+            list-style: none;
+           }
+           .sidebar li.active {
+            background-color: #334eac;
+            color: white;
+            font-weight: bold;
+           }
+           .sidebar li.active a {
+            color: white;
+           }
+           .sidebar a {
+            text-decoration: none;
+            color: #333;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+           }
+           .menu-icon {
+            flex-shrink: 0;
+           }
+
+           .content  {
+            flex: 1;
+            padding: 20px;
+           }
+
+           /* ===== 배정 레이아웃: 직원목록 + 달력 + 배정패널 ===== */
+           .assign-layout {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+           }
+
+           .emp-list {
+            width: 160px;
+            flex-shrink: 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: white;
+           }
+           .emp-list-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            border-bottom: 1px solid #eee;
+           }
+           .emp-list-item:last-child {
+            border-bottom: none;
+           }
+           .emp-list-item.active {
+            background-color: #334eac;
+            color: white;
+            font-weight: bold;
+           }
+
+           .calendar-area {
+            flex: 1;
+            min-width: 320px;
+           }
+           .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ccc;
+            border-radius: 6px 6px 0 0;
+            padding: 12px 20px;
+            background-color: #fafafa;
+           }
+           .month-btn {
+            border: none;
+            background: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 10px;
+            color: #334eac;
+           }
+           .calendar-title {
+            font-size: 18px;
+            font-weight: bold;
+           }
+           .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            border-left: 1px solid #ccc;
+            border-top: 1px solid #ccc;
+           }
+           .day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 8px 0;
+            background-color: #f0f0f0;
+            border-right: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+           }
+           .date-cell {
+            min-height: 70px;
+            padding: 6px 8px;
+            border-right: 1px solid #ccc;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+           }
+           .date-cell:hover {
+            background-color: #f5f7ff;
+           }
+           .date-cell.empty {
+            background-color: #fafafa;
+            cursor: default;
+           }
+           .date-cell.selected {
+            background-color: #e8ecfb;
+           }
+           .date-num {
+            font-size: 14px;
+            color: #333;
+           }
+           .shift-tag {
+            display: block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: #334eac;
+           }
+
+           .assign-panel {
+            width: 220px;
+            flex-shrink: 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 18px;
+            background-color: white;
+           }
+           .assign-panel h4 {
+            margin: 0 0 14px;
+            font-size: 15px;
+           }
+           .assign-panel label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+           }
+           .assign-panel select,
+           .assign-panel input[type="time"] {
+            width: 100%;
+            padding: 7px 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+            margin-bottom: 12px;
+           }
+           .assign-panel-actions {
+            display: flex;
+            gap: 8px;
+           }
+           .btn-save,
+           .btn-delete {
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            color: white;
+           }
+           .btn-save {
+            background-color: #334eac;
+           }
+           .btn-save:hover {
+            background-color: #859ffd;
+           }
+           .btn-delete {
+            background-color: #d9534f;
+           }
+           .btn-delete:hover {
+            background-color: #c9302c;
+           }
+           .btn-delete:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+           }
+           .assign-panel-empty {
+            color: #999;
+            font-size: 13px;
+           }
+
+           /* ===== 자동으로 사라지는 알림(토스트) ===== */
+           .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 200;
+           }
+           .toast.show {
+            opacity: 1;
+           }
+
+           /* ===== 알림 드롭다운 ===== */
+           .notif-wrap {
+            position: relative;
+            display: inline-block;
+           }
+           .notif-bell {
+            position: relative;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0;
+           }
+           .notif-badge {
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background-color: #d9534f;
+            color: white;
+            font-size: 10px;
+            border-radius: 999px;
+            padding: 1px 5px;
+           }
+           .notif-dropdown {
+            position: absolute;
+            top: 26px;
+            right: 0;
+            width: 280px;
+            background-color: white;
+            color: #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 100;
+            overflow: hidden;
+           }
+           .notif-dropdown-title {
+            padding: 12px 16px;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+           }
+           .notif-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 280px;
+            overflow-y: auto;
+           }
+           .notif-item {
+            padding: 10px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+            color: #444;
+            cursor: pointer;
+           }
+           .notif-item:last-child {
+            border-bottom: none;
+           }
+           .notif-item.unread {
+            background-color: #eef1fb;
+            font-weight: bold;
+           }
+           .notif-item-date {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            color: #999;
+            font-weight: normal;
+           }
+           .notif-empty {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+           }
+
+    </style>
+</head>
+<body>
+
+    <!-- ===== 상단 헤더 ===== -->
+    <header class="topbar">
+        <h1 class="topbar-title">근태관리 시스템 [관리자]</h1>
+        <div class="topbar-user">
+            <span>OOO 님(수정해야됨)</span>
+            <span>|</span>
+            <div class="notif-wrap">
+                <button type="button" class="notif-bell" id="notifBell">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
+                <div class="notif-dropdown" id="notifDropdown" hidden>
+                    <div class="notif-dropdown-title">알림</div>
+                    <ul class="notif-list" id="notifList"></ul>
+                </div>
+            </div>
+            <span>|</span>
+            <a href="../login/login.html">로그아웃</a>
+        </div>
+    </header>
+
+    <!-- ===== 본문: 왼쪽 메뉴 + 오른쪽 내용 ===== -->
+    <div class="layout">
+
+        <!-- 왼쪽 사이드바 메뉴 -->
+        <nav class="sidebar">
+            <ul>
+                <li><a href="main.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>관리자 메인</a></li>
+                <li><a href="attendance-manage.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>근태 관리</a></li>
+                <li class="active"><a href="schedule-assign.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>스케줄 배정</a></li>
+                <li><a href="approval.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>승인 대기함</a></li>
+                <li><a href="employee-manage.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>직원 관리</a></li>
+                <li><a href="notification.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>알림</a></li>
+            </ul>
+        </nav>
+
+        <!-- 오른쪽 메인 콘텐츠 -->
+        <main class="content">
+
+            <h2>스케줄 배정</h2>
+
+            <div class="assign-layout">
+
+                <!-- 직원 목록 -->
+                <div class="emp-list" id="empList"></div>
+
+                <!-- 달력 -->
+                <div class="calendar-area">
+                    <div class="calendar-header">
+                        <button type="button" class="month-btn" id="prevMonth">◀</button>
+                        <span class="calendar-title" id="calendarTitle">2026-09</span>
+                        <button type="button" class="month-btn" id="nextMonth">▶</button>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+
+                <!-- 배정 입력 패널 -->
+                <div class="assign-panel" id="assignPanel">
+                    <p class="assign-panel-empty">달력에서 날짜를 선택하세요.</p>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ===== 자동으로 사라지는 알림 ===== -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        /*
+         * ============================================================
+         * [스케줄 배정 - 백엔드 연동 시 교체 대상]
+         * localStorage("scheduleAssignments")가 SCHEDULE 테이블을 흉내내고 있음.
+         * 1) 저장 → ScheduleAssignController.assignSchedule(ScheduleVO) → SCHEDULE INSERT/UPDATE,
+         *    ASSIGNED_BY(배정한 관리자 사번)도 같이 저장해야 함
+         * 2) 삭제 → deleteSchedule(schId)
+         * 3) 저장 시 해당 직원에게 배정 알림 자동 발송해야 함 (FR-SAS-006, NOTIFICATION insert) →
+         *    지금은 이 부분이 아예 빠져있어서, 직원 쪽 알림 드롭다운에 스케줄 배정 알림이 안 뜸
+         * ============================================================
+         */
+        const menuItems = document.querySelectorAll(".sidebar li");
+        menuItems.forEach(function (item) {
+            item.addEventListener("click", function () {
+                menuItems.forEach(function (i) { i.classList.remove("active"); });
+                item.classList.add("active");
+            });
+        });
+
+        // ===== 상태 =====
+        // TODO(백엔드): EmployeeDAO.selectAll() (부서 선택 시 해당 부서만)로 교체
+        const employees = [];
+        const dayNames = ["일", "월", "화", "수", "목", "금", "토"];
+        const shiftLabels = { DAY: "주간", NIGHT: "야간", OFF: "휴무" };
+
+        let selectedEmp = employees[0];
+        let calYear = 2026;
+        let calMonth = 9;
+        let selectedDate = null;
+
+        function pad(n) { return String(n).padStart(2, "0"); }
+
+        function loadAssignments() {
+            return JSON.parse(localStorage.getItem("scheduleAssignments")) || {};
+        }
+        function saveAssignments(data) {
+            localStorage.setItem("scheduleAssignments", JSON.stringify(data));
+        }
+        function assignKey(emp, dateStr) {
+            return emp + "|" + dateStr;
+        }
+
+        // ===== 직원 목록 렌더 =====
+        const empListEl = document.getElementById("empList");
+        function renderEmpList() {
+            empListEl.innerHTML = "";
+            if (employees.length === 0) {
+                empListEl.innerHTML = "<div style=\"padding:14px 16px; color:#999; font-size:13px;\">등록된 직원이 없습니다.</div>";
+                return;
+            }
+            employees.forEach(function (emp) {
+                const item = document.createElement("div");
+                item.className = "emp-list-item" + (emp === selectedEmp ? " active" : "");
+                item.textContent = emp;
+                item.addEventListener("click", function () {
+                    selectedEmp = emp;
+                    selectedDate = null;
+                    renderEmpList();
+                    renderCalendar();
+                    renderPanel();
+                });
+                empListEl.appendChild(item);
+            });
+        }
+
+        // ===== 달력 렌더 =====
+        const calendarTitle = document.getElementById("calendarTitle");
+        const calendarGrid = document.getElementById("calendarGrid");
+
+        function renderCalendar() {
+            calendarTitle.textContent = calYear + "-" + pad(calMonth);
+            calendarGrid.innerHTML = "";
+
+            dayNames.forEach(function (name) {
+                const header = document.createElement("div");
+                header.className = "day-header";
+                header.textContent = name;
+                calendarGrid.appendChild(header);
+            });
+
+            const firstWeekday = new Date(calYear, calMonth - 1, 1).getDay();
+            const daysInMonth = new Date(calYear, calMonth, 0).getDate();
+            const assignments = loadAssignments();
+
+            for (let i = 0; i < firstWeekday; i++) {
+                const empty = document.createElement("div");
+                empty.className = "date-cell empty";
+                calendarGrid.appendChild(empty);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = calYear + "-" + pad(calMonth) + "-" + pad(day);
+                const cell = document.createElement("div");
+                cell.className = "date-cell" + (dateStr === selectedDate ? " selected" : "");
+
+                const num = document.createElement("div");
+                num.className = "date-num";
+                num.textContent = day;
+                cell.appendChild(num);
+
+                const assign = assignments[assignKey(selectedEmp, dateStr)];
+                if (assign) {
+                    const tag = document.createElement("div");
+                    tag.className = "shift-tag";
+                    tag.textContent = shiftLabels[assign.shiftType] + " " + assign.start + "-" + assign.end;
+                    cell.appendChild(tag);
+                }
+
+                cell.addEventListener("click", function () {
+                    selectedDate = dateStr;
+                    renderCalendar();
+                    renderPanel();
+                });
+
+                calendarGrid.appendChild(cell);
+            }
+        }
+
+        // ===== 배정 입력 패널 렌더 =====
+        const assignPanel = document.getElementById("assignPanel");
+
+        function renderPanel() {
+            if (!selectedDate) {
+                assignPanel.innerHTML = "<p class=\"assign-panel-empty\">달력에서 날짜를 선택하세요.</p>";
+                return;
+            }
+
+            const assignments = loadAssignments();
+            const existing = assignments[assignKey(selectedEmp, selectedDate)];
+
+            assignPanel.innerHTML =
+                "<h4>" + selectedEmp + " · " + selectedDate + "</h4>" +
+                "<label for=\"shiftType\">근무유형</label>" +
+                "<select id=\"shiftType\">" +
+                "<option value=\"DAY\">주간</option>" +
+                "<option value=\"NIGHT\">야간</option>" +
+                "<option value=\"OFF\">휴무</option>" +
+                "</select>" +
+                "<label for=\"shiftStart\">시작</label>" +
+                "<input type=\"time\" id=\"shiftStart\" value=\"" + (existing ? existing.start : "09:00") + "\">" +
+                "<label for=\"shiftEnd\">종료</label>" +
+                "<input type=\"time\" id=\"shiftEnd\" value=\"" + (existing ? existing.end : "18:00") + "\">" +
+                "<div class=\"assign-panel-actions\">" +
+                "<button type=\"button\" class=\"btn-save\" id=\"saveAssignBtn\">저장</button>" +
+                "<button type=\"button\" class=\"btn-delete\" id=\"deleteAssignBtn\" " + (existing ? "" : "disabled") + ">삭제</button>" +
+                "</div>";
+
+            document.getElementById("shiftType").value = existing ? existing.shiftType : "DAY";
+
+            document.getElementById("saveAssignBtn").addEventListener("click", function () {
+                const shiftType = document.getElementById("shiftType").value;
+                const start = document.getElementById("shiftStart").value;
+                const end = document.getElementById("shiftEnd").value;
+
+                const all = loadAssignments();
+                all[assignKey(selectedEmp, selectedDate)] = { shiftType: shiftType, start: start, end: end };
+                saveAssignments(all);
+
+                renderCalendar();
+                renderPanel();
+                showToast("저장되었습니다.");
+            });
+
+            document.getElementById("deleteAssignBtn").addEventListener("click", function () {
+                const all = loadAssignments();
+                delete all[assignKey(selectedEmp, selectedDate)];
+                saveAssignments(all);
+
+                renderCalendar();
+                renderPanel();
+                showToast("삭제되었습니다.");
+            });
+        }
+
+        // ===== 자동으로 사라지는 알림(토스트) =====
+        let toastTimer = null;
+        function showToast(message) {
+            const toast = document.getElementById("toast");
+            toast.textContent = message;
+            toast.classList.add("show");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function () {
+                toast.classList.remove("show");
+            }, 1800);
+        }
+
+        // ===== 월 이동 =====
+        document.getElementById("prevMonth").addEventListener("click", function () {
+            calMonth--;
+            if (calMonth < 1) { calMonth = 12; calYear--; }
+            renderCalendar();
+        });
+        document.getElementById("nextMonth").addEventListener("click", function () {
+            calMonth++;
+            if (calMonth > 12) { calMonth = 1; calYear++; }
+            renderCalendar();
+        });
+
+        renderEmpList();
+        renderCalendar();
+        renderPanel();
+
+        // ===== 알림 드롭다운 =====
+        function loadNotifications() {
+            // TODO(백엔드): NotificationDAO.selectByReceiver(로그인한 empNo)로 교체
+            return JSON.parse(localStorage.getItem("notifications")) || [];
+        }
+        function saveNotifications(list) {
+            localStorage.setItem("notifications", JSON.stringify(list));
+        }
+
+        const notifBell = document.getElementById("notifBell");
+        const notifDropdown = document.getElementById("notifDropdown");
+        const notifBadge = document.getElementById("notifBadge");
+        const notifList = document.getElementById("notifList");
+
+        function renderNotifications() {
+            const list = loadNotifications();
+            const unread = list.filter(function (n) { return n.readYn === "N"; });
+
+            if (unread.length > 0) {
+                notifBadge.textContent = unread.length;
+                notifBadge.hidden = false;
+            } else {
+                notifBadge.hidden = true;
+            }
+
+            notifList.innerHTML = "";
+            if (list.length === 0) {
+                notifList.innerHTML = "<li class=\"notif-empty\">알림이 없습니다.</li>";
+                return;
+            }
+
+            list.slice().reverse().forEach(function (n) {
+                const li = document.createElement("li");
+                li.className = "notif-item" + (n.readYn === "N" ? " unread" : "");
+                li.innerHTML = n.content + "<span class=\"notif-item-date\">" + n.sentDate + "</span>";
+                li.addEventListener("click", function () {
+                    n.readYn = "Y";
+                    saveNotifications(list);
+                    renderNotifications();
+                });
+                notifList.appendChild(li);
+            });
+        }
+
+        notifBell.addEventListener("click", function (e) {
+            e.stopPropagation();
+            notifDropdown.hidden = !notifDropdown.hidden;
+        });
+        document.addEventListener("click", function (e) {
+            if (!notifDropdown.hidden && !notifDropdown.contains(e.target) && e.target !== notifBell) {
+                notifDropdown.hidden = true;
+            }
+        });
+
+        renderNotifications();
+    </script>
+
+</body>
+</html>

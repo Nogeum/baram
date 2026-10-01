@@ -55,7 +55,9 @@ public class PortalController {
         model.addAttribute("query",query); model.addAttribute("year",today.getYear());
         model.addAttribute("remaining",service.remaining(me,today.getYear()));
         model.addAttribute("todayAttendance",attendance.findByEmployeeIdAndWorkDate(me.getId(),today).orElse(null));
-        model.addAttribute("notices",notices.findTop20ByOrderByCreatedAtDesc());
+        var noticeRows=notices.findTop20ByOrderByCreatedAtDesc();
+        model.addAttribute("notices",noticeRows);
+        model.addAttribute("noticeFiles",service.noticeAttachments(noticeRows));
         model.addAttribute("notifications",notifications.findTop100ByRecipientIdOrderByCreatedAtDesc(me.getId()));
         model.addAttribute("unreadNotifications",notifications.countByRecipientIdAndReadFlagFalse(me.getId()));
         var requests=admin ? List.<LeaveRequest>of() : leaves.findByEmployeeIdOrderByRequestedAtDesc(me.getId());
@@ -148,6 +150,23 @@ public class PortalController {
         return "redirect:/admin/employee-manage";
     }
     @PostMapping("/employee/profile") String profile(Principal p,@RequestParam(defaultValue="") String email,@RequestParam(defaultValue="") String phone,@RequestParam(defaultValue="") String currentPassword,@RequestParam(defaultValue="") String newPassword,RedirectAttributes f) { service.updateProfile(p.getName(),email,phone,currentPassword,newPassword); return done(f,"/employee/mypage"); }
-    @PostMapping("/admin/notices") String notice(Principal p,@RequestParam String title,@RequestParam String content,RedirectAttributes f) { service.publish(p.getName(),title,content); return done(f,"/admin/notification"); }
+    @PostMapping("/admin/notices") String notice(Principal p,@RequestParam String title,@RequestParam String content,
+            @RequestParam(required=false) List<org.springframework.web.multipart.MultipartFile> attachments,RedirectAttributes f) {
+        service.saveNotice(p.getName(),null,title,content,attachments,List.of()); return done(f,"/admin/notification");
+    }
+    @PostMapping("/admin/notices/{id}/edit") String editNotice(Principal p,@PathVariable Long id,@RequestParam String title,@RequestParam String content,
+            @RequestParam(required=false) List<org.springframework.web.multipart.MultipartFile> attachments,
+            @RequestParam(required=false) List<Long> removeFileIds,RedirectAttributes f) {
+        service.saveNotice(p.getName(),id,title,content,attachments,removeFileIds); return done(f,"/admin/notification");
+    }
+    @PostMapping("/admin/notices/{id}/delete") String deleteNotice(Principal p,@PathVariable Long id,RedirectAttributes f) {
+        service.deleteNotice(p.getName(),id); return done(f,"/admin/notification");
+    }
+    @GetMapping("/notices/files/{id}") org.springframework.http.ResponseEntity<byte[]> noticeFile(Principal p,@PathVariable Long id) {
+        var file=service.noticeAttachment(p.getName(),id);
+        return org.springframework.http.ResponseEntity.ok().contentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM)
+            .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,org.springframework.http.ContentDisposition.attachment().filename(file.getFilename(),java.nio.charset.StandardCharsets.UTF_8).build().toString())
+            .header("X-Content-Type-Options","nosniff").cacheControl(org.springframework.http.CacheControl.noStore()).body(file.getData());
+    }
     @PostMapping({"/employee/notifications/{id}/read","/admin/notifications/{id}/read"}) String read(Principal p,@PathVariable Long id,RedirectAttributes f) { service.readNotification(p.getName(),id); var e=service.current(p.getName()); return done(f,base(e)+(e.getRole()==Employee.Role.ADMIN ? "/notification" : "/main")); }
 }

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인</title>
+    <style>
+        
+        .login-box{
+            width: 600px;
+            height: 600px;
+            margin: 100px auto;
+            padding: 30px;
+            padding-top: 150px;
+            border: 1px solid #ccc;
+            text-align: center;
+            background-color: white;
+            border-radius: 20px;
+            
+        }
+
+        .login-box input{
+            width: 300px;
+            height: 45px;
+            padding: 10px;
+            margin-bottom: 12px;
+
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            
+        }
+
+        .login-box h1{
+            color : black;
+            font-size: 50px;
+        }
+
+        .login-box form{
+            margin-top: 50px;
+        }
+
+        .login-box .field{
+            width: 300px;
+            margin :0 auto 12px;
+            text-align: left;
+        }
+
+        .login-box .field p{
+            margin: 0 0 4px;
+        }
+
+        .login-box .greeting {
+        font-family: "MS PGothic", "MS Pゴシック", sans-serif;
+        }
+
+        .login-box button{
+            width: 100px;
+            height: 40px;
+            background-color: #334eac;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            
+        }
+
+        .login-box button:hover {
+        background-color: #859ffd;
+        }  
+        body{
+            background-color: #e5eafa;
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(to bottom right, #ebf1ff, #4561ff,#a883ff);
+        }
+    </style>
+
+
+
+</head>
+<script>
+    /*
+     * ============================================================
+     * [백엔드 연동 시 반드시 교체해야 할 부분]
+     * 지금은 아이디/비밀번호를 자바스크립트 안에 하드코딩해서 비교하고 있음.
+     * 실제로는:
+     *   1) 이 폼을 POST /api/login (또는 LoginController.login())으로 제출
+     *   2) 서버가 EMPLOYEE 테이블의 LOGIN_ID / LOGIN_PW(해시)를 대조
+     *   3) 성공 시 세션(HttpSession) 생성 + ROLE(EMPLOYEE/ADMIN) 저장
+     *   4) ROLE에 따라 employee/main.html 또는 admin/main.html로 분기 (FR-AUTH-003)
+     *   5) 실패 시 "아이디/비밀번호 불일치"만 안내하고 계정 존재 여부는 노출하지 않음 (FR-AUTH-002)
+     * 지금처럼 클라이언트에서만 검증하면 개발자도구로 누구나 통과 가능 → 절대 그대로 배포하면 안 됨.
+     * ============================================================
+     */
+    const form = document.getElementById("loginForm");
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();   // 폼 기본 동작(새로고침) 막기
+
+        const id = document.getElementById("username").value;
+        const pw = document.getElementById("password").value;
+
+        // TODO(백엔드): POST /api/login 으로 id/pw 전송 → 서버 인증 결과(성공/실패, ROLE)를 받아서 분기
+        // 성공 시: ROLE === "ADMIN" ? "../admin/main.html" : "../employee/main.html"
+        // 실패 시: document.getElementById("error_msg").style.display = "block";
+        void id;
+        void pw;
+    });
+</script>
+<body>
+    <div class="login-box">
+    <h1>로그인</h1>
+    <form action="/login" method="post">
+        <p class="greeting">안녕하세요 바람의나라에 오신 것을 환영합니다.</p>
+        <p class="greeting">お疲れ様です、風の国へようこそ</p>
+        <div class="field">
+            <p> ID </p>
+            <input type="text" id="username" name="username" placeholder="아이디(사번)" required>
+        </div>
+        <div class="field">
+            <p> 비밀번호 </p>
+            <input type="password" id="password" name="password" placeholder="비밀번호" required>
+        </div>
+        
+        <button type="submit" >로그인</button>
+    
+        <p id="error_msg" style="color: red;">* 아이디 또는 비밀번호가 일치하지 않습니다 *</p>
+        
+    
+    
+    </form>
+     </div>
+</body>
+</html>

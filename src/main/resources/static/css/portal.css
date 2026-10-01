@@ -70,6 +70,10 @@
 .groupware .gw-file{display:flex;gap:12px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid #edf0f6;overflow-wrap:anywhere}
 .groupware form label{margin-bottom:8px}
 .groupware details form{margin-top:16px}
+.notice details form{margin-top:12px}
+.notice .notice-file-option{display:flex;align-items:center;gap:8px;margin:8px 0}
+.notice .notice-file-option input[type="checkbox"]{width:18px;height:18px;margin:0;flex:0 0 18px}
+.notice li,.notice-file-option span{overflow-wrap:anywhere}
 .amendment-link{display:block;margin-bottom:8px}
 @media(max-width:650px){.sidebar{flex-wrap:wrap}.sidebar .groupware-nav{display:block;width:100%}.sidebar .groupware-nav .attendance-submenu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.groupware .directory-grid{grid-template-columns:1fr}.groupware .toolbar{align-items:stretch}.groupware .toolbar label{max-width:none;min-width:150px}}
 @media(max-width:650px){

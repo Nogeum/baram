@@ -9,6 +9,7 @@ import org.springframework.security.access.AccessDeniedException;
 
 @Component @RequiredArgsConstructor
 public class AmendmentView {
+
     private final AmendmentService amendments;
     private final DepartmentAccess departments;
     public long pending(Employee actor,boolean review){return amendments.list(actor).stream().filter(r->review?amendments.canReview(actor,r):r.getEmployee().getId().equals(actor.getId())&&r.getStatus().equals("PENDING")).count();}

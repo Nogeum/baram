@@ -10,4 +10,7 @@ interface FileInfo {Long getId();String getFilename();long getFileSize();java.ti
 List<FileInfo> metadata(@Param("type") String type,@Param("owner") Long owner);
 @Lock(LockModeType.PESSIMISTIC_WRITE) @Query("select r from StoredFile r where r.id=:id")
 Optional<StoredFile> lockById(@Param("id") Long id);
+@Modifying
+@Query("delete from StoredFile f where f.ownerType=:type and f.ownerId=:owner")
+int deleteOwnedFiles(@Param("type") String type,@Param("owner") Long owner);
 }

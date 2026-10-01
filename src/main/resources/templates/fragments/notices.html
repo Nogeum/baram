@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"><body>
+<section th:fragment="create" class="panel" th:if="${admin and page=='notification'}">
+  <h2>공지사항 등록</h2>
+  <form class="form-grid" th:action="@{/admin/notices}" method="post" enctype="multipart/form-data">
+    <label class="full">제목<input name="title" maxlength="160" required></label>
+    <label class="full">내용<textarea name="content" maxlength="2000" required></textarea></label>
+    <label class="full">자료 첨부<input type="file" name="attachments" multiple><small>파일당 10MB 이하, 한 번에 전송하는 전체 요청은 12MB 이하입니다.</small></label>
+    <div class="full"><button>공지 등록</button></div>
+  </form>
+</section>
+<section th:fragment="list" class="panel" th:if="${(!managerView and page=='main') or page=='notification'}">
+  <h2>사내 공지사항</h2>
+  <article class="notice" th:each="n : ${notices}">
+    <h3 th:text="${n.title}"></h3>
+    <small th:text="${#temporals.format(n.createdAt,'yyyy-MM-dd HH:mm')} + ' · ' + ${n.author.displayName}"></small>
+    <p th:text="${n.content}"></p>
+    <ul th:if="${!#lists.isEmpty(noticeFiles[n.id])}">
+      <li th:each="file : ${noticeFiles[n.id]}"><a th:href="@{/notices/files/{id}(id=${file.id})}" th:text="${file.filename}"></a> <small th:text="${file.fileSize} + ' bytes'"></small></li>
+    </ul>
+    <details th:if="${admin}">
+      <summary>공지 수정</summary>
+      <form class="form-grid" th:action="@{/admin/notices/{id}/edit(id=${n.id})}" method="post" enctype="multipart/form-data">
+        <label class="full">제목<input name="title" th:value="${n.title}" maxlength="160" required></label>
+        <label class="full">내용<textarea name="content" th:text="${n.content}" maxlength="2000" required></textarea></label>
+        <div class="full" th:if="${!#lists.isEmpty(noticeFiles[n.id])}">
+          <p>삭제할 첨부파일을 선택하세요. 저장할 때 삭제됩니다.</p>
+          <label class="notice-file-option" th:each="file : ${noticeFiles[n.id]}"><input type="checkbox" name="removeFileIds" th:value="${file.id}"><span th:text="${file.filename}"></span></label>
+        </div>
+        <label class="full">자료 추가<input type="file" name="attachments" multiple><small>파일당 10MB 이하, 전체 요청 12MB 이하. 선택하지 않으면 기존 첨부파일을 유지합니다.</small></label>
+        <div class="full"><button>수정 저장</button></div>
+      </form>
+    </details>
+    <details th:if="${admin}">
+      <summary>공지 삭제</summary>
+      <p>이 공지와 첨부파일이 모두 삭제됩니다. 삭제 후 복구할 수 없습니다.</p>
+      <form th:action="@{/admin/notices/{id}/delete(id=${n.id})}" method="post"><button class="secondary">공지와 첨부파일 삭제 확인</button></form>
+    </details>
+  </article>
+  <p class="empty" th:if="${#lists.isEmpty(notices)}">등록된 공지가 없습니다.</p>
+</section>
+</body></html>

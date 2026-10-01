@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>근태관리 시스템 - 직원 관리</title>
+    <style>
+
+           .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgb(26, 40, 90);
+            color: white;
+            padding: 10px 20px;
+           }
+
+           .topbar-title {
+            font-size: 24px;
+            font-weight: bold;
+           }
+           .topbar-user {
+            font-size: 14px;
+           }
+           .topbar-user a {
+            color: white;
+           }
+           .layout  {
+            display: flex;
+           }
+           .sidebar {
+            width: 200px;
+            background-color: #f0f0f0;
+            padding: 0;
+            font-size: 16px;
+           }
+           .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+           }
+           .sidebar li  {
+            list-style: none;
+           }
+           .sidebar li.active {
+            background-color: #334eac;
+            color: white;
+            font-weight: bold;
+           }
+           .sidebar li.active a {
+            color: white;
+           }
+           .sidebar a {
+            text-decoration: none;
+            color: #333;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+           }
+           .menu-icon {
+            flex-shrink: 0;
+           }
+
+           .content  {
+            flex: 1;
+            padding: 20px;
+            max-width: 1050px;
+           }
+
+           /* ===== 검색 + 등록 버튼 ===== */
+           .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+           }
+           .search-box input {
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            width: 220px;
+           }
+           .btn-add {
+            background-color: #334eac;
+            color: white;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+           }
+           .btn-add:hover {
+            background-color: #859ffd;
+           }
+           .toolbar-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+           }
+           .toolbar-actions-row {
+            display: flex;
+            gap: 6px;
+           }
+
+           /* ===== 직원 등록 폼 ===== */
+           .add-form-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 22px 24px;
+            margin-bottom: 20px;
+           }
+           .add-form-card h3 {
+            margin: 0 0 16px;
+            font-size: 16px;
+           }
+           .form-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 16px;
+           }
+           .form-grid label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+           }
+           .form-grid input,
+           .form-grid select {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            box-sizing: border-box;
+           }
+           .add-form-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+           }
+           .btn-save,
+           .btn-cancel {
+            padding: 9px 22px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+           }
+           .btn-save {
+            background-color: #334eac;
+            color: white;
+           }
+           .btn-save:hover {
+            background-color: #859ffd;
+           }
+           .btn-cancel {
+            background-color: white;
+            color: #333;
+            border: 1px solid #ccc;
+           }
+           .btn-cancel:hover {
+            background-color: #eee;
+           }
+
+           /* ===== 직원 목록 테이블 ===== */
+           .emp-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+           }
+           .emp-table th,
+           .emp-table td {
+            border: 1px solid #ddd;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 14px;
+           }
+           .emp-table th {
+            background-color: #f0f0f0;
+           }
+           .emp-table th:first-child,
+           .emp-table td:first-child {
+            width: 40px;
+            text-align: center;
+           }
+           .emp-table select {
+            padding: 5px 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+           }
+           .btn-edit-toggle {
+            padding: 6px 14px;
+            border: 1px solid #334eac;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #334eac;
+            background-color: white;
+            cursor: pointer;
+           }
+           .btn-edit-toggle:hover {
+            background-color: #eef1fb;
+           }
+           .btn-edit-toggle.saving {
+            background-color: #334eac;
+            color: white;
+           }
+           .btn-edit-toggle.saving:hover {
+            background-color: #859ffd;
+           }
+           .btn-bulk-leave {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            color: white;
+            background-color: #d9534f;
+            cursor: pointer;
+           }
+           .btn-bulk-leave:hover {
+            background-color: #c9302c;
+           }
+           .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: white;
+           }
+           .status-badge.active {
+            background-color: #4caf50;
+           }
+           .status-badge.leave {
+            background-color: #999;
+           }
+           .empty-message {
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+           }
+
+           /* ===== 알림 드롭다운 ===== */
+           .notif-wrap {
+            position: relative;
+            display: inline-block;
+           }
+           .notif-bell {
+            position: relative;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0;
+           }
+           .notif-badge {
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background-color: #d9534f;
+            color: white;
+            font-size: 10px;
+            border-radius: 999px;
+            padding: 1px 5px;
+           }
+           .notif-dropdown {
+            position: absolute;
+            top: 26px;
+            right: 0;
+            width: 280px;
+            background-color: white;
+            color: #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 100;
+            overflow: hidden;
+           }
+           .notif-dropdown-title {
+            padding: 12px 16px;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+           }
+           .notif-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 280px;
+            overflow-y: auto;
+           }
+           .notif-item {
+            padding: 10px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+            color: #444;
+            cursor: pointer;
+           }
+           .notif-item:last-child {
+            border-bottom: none;
+           }
+           .notif-item.unread {
+            background-color: #eef1fb;
+            font-weight: bold;
+           }
+           .notif-item-date {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            color: #999;
+            font-weight: normal;
+           }
+           .notif-empty {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+           }
+
+    </style>
+</head>
+<body>
+
+    <!-- ===== 상단 헤더 ===== -->
+    <header class="topbar">
+        <h1 class="topbar-title">근태관리 시스템 [관리자]</h1>
+        <div class="topbar-user">
+            <span>OOO 님(수정해야됨)</span>
+            <span>|</span>
+            <div class="notif-wrap">
+                <button type="button" class="notif-bell" id="notifBell">🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
+                <div class="notif-dropdown" id="notifDropdown" hidden>
+                    <div class="notif-dropdown-title">알림</div>
+                    <ul class="notif-list" id="notifList"></ul>
+                </div>
+            </div>
+            <span>|</span>
+            <a href="../login/login.html">로그아웃</a>
+        </div>
+    </header>
+
+    <!-- ===== 본문: 왼쪽 메뉴 + 오른쪽 내용 ===== -->
+    <div class="layout">
+
+        <!-- 왼쪽 사이드바 메뉴 -->
+        <nav class="sidebar">
+            <ul>
+                <li><a href="main.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>관리자 메인</a></li>
+                <li><a href="attendance-manage.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>근태 관리</a></li>
+                <li><a href="schedule-assign.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>스케줄 배정</a></li>
+                <li><a href="approval.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>승인 대기함</a></li>
+                <li class="active"><a href="employee-manage.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>직원 관리</a></li>
+                <li><a href="notification.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>알림</a></li>
+            </ul>
+        </nav>
+
+        <!-- 오른쪽 메인 콘텐츠 -->
+        <main class="content">
+
+            <h2>직원 관리</h2>
+
+            <div class="toolbar">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="이름으로 검색">
+                </div>
+                <div class="toolbar-actions">
+                    <button type="button" class="btn-add" id="showAddFormBtn">+ 직원 등록</button>
+                    <div class="toolbar-actions-row">
+                        <button type="button" class="btn-edit-toggle" id="editToggleBtn">수정</button>
+                        <button type="button" class="btn-bulk-leave" id="bulkLeaveBtn">퇴사 처리</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 직원 등록 폼 (관리자 전용 계정 생성) -->
+            <div class="add-form-card" id="addFormCard" hidden>
+                <h3>신규 직원 등록</h3>
+                <div class="form-grid">
+                    <div>
+                        <label for="newName">이름</label>
+                        <input type="text" id="newName">
+                    </div>
+                    <div>
+                        <label for="newDept">부서</label>
+                        <select id="newDept">
+                            <option value="개발팀">개발팀</option>
+                            <option value="DB팀">DB팀</option>
+                            <option value="QA팀">QA팀</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="newPosition">직급</label>
+                        <select id="newPosition">
+                            <option value="사원">사원</option>
+                            <option value="주임">주임</option>
+                            <option value="대리">대리</option>
+                            <option value="과장">과장</option>
+                            <option value="차장">차장</option>
+                            <option value="부장">부장</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="newLoginId">로그인ID</label>
+                        <input type="text" id="newLoginId">
+                    </div>
+                    <div>
+                        <label for="newPassword">초기 비밀번호</label>
+                        <input type="password" id="newPassword">
+                    </div>
+                    <div>
+                        <label for="newRole">권한</label>
+                        <select id="newRole">
+                            <option value="EMPLOYEE">직원</option>
+                            <option value="ADMIN">관리자</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="newEmail">이메일</label>
+                        <input type="email" id="newEmail">
+                    </div>
+                    <div>
+                        <label for="newPhone">전화번호</label>
+                        <input type="text" id="newPhone" placeholder="010-0000-0000">
+                    </div>
+                    <div>
+                        <label for="newHireDate">입사일</label>
+                        <input type="date" id="newHireDate">
+                    </div>
+                </div>
+                <div class="add-form-actions">
+                    <button type="button" class="btn-cancel" id="cancelAddBtn">취소</button>
+                    <button type="button" class="btn-save" id="saveAddBtn">등록</button>
+                </div>
+            </div>
+
+            <table class="emp-table" id="empTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAllCheckbox"></th>
+                        <th>사번</th>
+                        <th>이름</th>
+                        <th>부서</th>
+                        <th>직급</th>
+                        <th>권한</th>
+                        <th>재직상태</th>
+                    </tr>
+                </thead>
+                <tbody id="empTableBody"></tbody>
+            </table>
+
+            <div class="empty-message" id="emptyMessage" hidden>
+                검색 결과가 없습니다.
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        /*
+         * ============================================================
+         * [직원 관리 - 백엔드 연동 시 교체 대상 / 보안 주의]
+         * 1) 사번(EMP_NO) 자동 생성 → 지금은 배열 길이+1로 생성해서 직원이 삭제/퇴사해도 번호가
+         *    꼬일 수 있음. 실제로는 Oracle 시퀀스나 서버에서 안전하게 채번해야 함
+         * 2) 로그인ID 중복 체크는 이미 구현되어 있지만, 서버에서도 UNIQUE 제약(DB) + 재검증 필요
+         *    (동시에 같은 아이디로 두 명이 가입 시도하는 경쟁 상태 방지)
+         * 3) ⚠️ 비밀번호(password 필드)가 지금 localStorage에 평문으로 저장되고 있음.
+         *    실제 서버에서는 반드시 단방향 해시(+솔트)로 저장, 절대 평문 저장/전송 금지 (NFR-SEC-002)
+         * 4) 퇴사 처리 → 실제 삭제가 아니라 EMP_STATUS=LEAVE로 UPDATE (BL-016, 이미 그렇게 구현됨,
+         *    백엔드에서도 이 원칙 유지)
+         * 5) 이 화면 자체가 관리자 전용이므로 서버에서 ROLE=ADMIN 세션 검증 필수
+         * ============================================================
+         */
+        const menuItems = document.querySelectorAll(".sidebar li");
+        menuItems.forEach(function (item) {
+            item.addEventListener("click", function () {
+                menuItems.forEach(function (i) { i.classList.remove("active"); });
+                item.classList.add("active");
+            });
+        });
+
+        // ===== 직원 목록 (localStorage, 처음 접속 시 샘플 데이터로 초기화) =====
+        const roleLabel = { EMPLOYEE: "직원", ADMIN: "관리자" };
+        const statusLabel = { ACTIVE: "재직", LEAVE: "퇴사" };
+
+        // TODO(백엔드): EmployeeDAO.selectAll() (또는 부서/검색 조건 조회)로 교체
+        function loadEmployees() {
+            return JSON.parse(localStorage.getItem("employees")) || [];
+        }
+        function saveEmployees(list) {
+            localStorage.setItem("employees", JSON.stringify(list));
+        }
+
+        function nextEmpNo(list) {
+            const year = new Date().getFullYear();
+            const seq = list.length + 1;
+            return "EMP" + year + String(seq).padStart(4, "0");
+        }
+
+        const tbody = document.getElementById("empTableBody");
+        const table = document.getElementById("empTable");
+        const emptyMessage = document.getElementById("emptyMessage");
+        const editToggleBtn = document.getElementById("editToggleBtn");
+
+        let editAllMode = false;
+        let checkedIndices = new Set();
+
+        const deptList = ["개발팀", "DB팀", "QA팀"];
+        const positionList = ["사원", "주임", "대리", "과장", "차장", "부장"];
+
+        function deptOptions(current) {
+            return deptList.map(function (d) {
+                return "<option value=\"" + d + "\"" + (d === current ? " selected" : "") + ">" + d + "</option>";
+            }).join("");
+        }
+        function positionOptions(current) {
+            return positionList.map(function (p) {
+                return "<option value=\"" + p + "\"" + (p === current ? " selected" : "") + ">" + p + "</option>";
+            }).join("");
+        }
+
+        function renderTable() {
+            const all = loadEmployees();
+            const keyword = document.getElementById("searchInput").value.trim();
+            const filtered = keyword ? all.filter(function (e) { return e.name.includes(keyword); }) : all;
+
+            tbody.innerHTML = "";
+
+            if (filtered.length === 0) {
+                table.hidden = true;
+                emptyMessage.hidden = false;
+                return;
+            }
+            table.hidden = false;
+            emptyMessage.hidden = true;
+
+            filtered.forEach(function (emp) {
+                const realIndex = all.indexOf(emp);
+                const isActive = emp.status === "ACTIVE";
+                const tr = document.createElement("tr");
+
+                const deptCell = editAllMode
+                    ? "<select class=\"edit-dept\" data-index=\"" + realIndex + "\">" + deptOptions(emp.dept) + "</select>"
+                    : emp.dept;
+                const positionCell = editAllMode
+                    ? "<select class=\"edit-position\" data-index=\"" + realIndex + "\">" + positionOptions(emp.position) + "</select>"
+                    : emp.position;
+
+                tr.innerHTML =
+                    "<td><input type=\"checkbox\" class=\"row-check\" data-index=\"" + realIndex + "\"" + (checkedIndices.has(realIndex) ? " checked" : "") + "></td>" +
+                    "<td>" + emp.empNo + "</td>" +
+                    "<td>" + emp.name + "</td>" +
+                    "<td>" + deptCell + "</td>" +
+                    "<td>" + positionCell + "</td>" +
+                    "<td>" + roleLabel[emp.role] + "</td>" +
+                    "<td><span class=\"status-badge " + (isActive ? "active" : "leave") + "\">" + statusLabel[emp.status] + "</span></td>";
+                tbody.appendChild(tr);
+            });
+
+            tbody.querySelectorAll(".row-check").forEach(function (cb) {
+                cb.addEventListener("change", function () {
+                    const idx = Number(cb.dataset.index);
+                    if (cb.checked) {
+                        checkedIndices.add(idx);
+                    } else {
+                        checkedIndices.delete(idx);
+                    }
+                });
+            });
+        }
+
+        // ===== 전체 선택 체크박스 =====
+        document.getElementById("selectAllCheckbox").addEventListener("change", function (e) {
+            const all = loadEmployees();
+            tbody.querySelectorAll(".row-check").forEach(function (cb) {
+                cb.checked = e.target.checked;
+                const idx = Number(cb.dataset.index);
+                if (e.target.checked) {
+                    checkedIndices.add(idx);
+                } else {
+                    checkedIndices.delete(idx);
+                }
+            });
+        });
+
+        // ===== 수정 버튼 (전체 행을 한 번에 편집 모드로) =====
+        editToggleBtn.addEventListener("click", function () {
+            if (!editAllMode) {
+                editAllMode = true;
+                editToggleBtn.textContent = "저장";
+                editToggleBtn.classList.add("saving");
+                renderTable();
+                return;
+            }
+
+            // 저장: 화면에 떠 있는 모든 select 값을 한 번에 반영
+            const all = loadEmployees();
+            tbody.querySelectorAll(".edit-dept").forEach(function (sel) {
+                all[Number(sel.dataset.index)].dept = sel.value;
+            });
+            tbody.querySelectorAll(".edit-position").forEach(function (sel) {
+                all[Number(sel.dataset.index)].position = sel.value;
+            });
+            saveEmployees(all);
+
+            editAllMode = false;
+            editToggleBtn.textContent = "수정";
+            editToggleBtn.classList.remove("saving");
+            renderTable();
+        });
+
+        // ===== 퇴사 처리 버튼 (체크된 직원 일괄 처리) =====
+        document.getElementById("bulkLeaveBtn").addEventListener("click", function () {
+            if (checkedIndices.size === 0) {
+                alert("퇴사 처리할 직원을 체크박스로 선택해주세요.");
+                return;
+            }
+            if (!confirm("선택한 " + checkedIndices.size + "명을 퇴사 처리하시겠습니까?")) return;
+
+            const all = loadEmployees();
+            // 실제 레코드는 삭제하지 않고 재직상태만 변경 (BL-016)
+            checkedIndices.forEach(function (idx) {
+                if (all[idx]) all[idx].status = "LEAVE";
+            });
+            saveEmployees(all);
+
+            checkedIndices.clear();
+            renderTable();
+        });
+
+        document.getElementById("searchInput").addEventListener("input", renderTable);
+
+        // ===== 신규 직원 등록 (관리자 전용) =====
+        const addFormCard = document.getElementById("addFormCard");
+
+        document.getElementById("showAddFormBtn").addEventListener("click", function () {
+            addFormCard.hidden = false;
+        });
+        document.getElementById("cancelAddBtn").addEventListener("click", function () {
+            addFormCard.hidden = true;
+        });
+
+        document.getElementById("saveAddBtn").addEventListener("click", function () {
+            const name = document.getElementById("newName").value.trim();
+            const dept = document.getElementById("newDept").value;
+            const position = document.getElementById("newPosition").value;
+            const loginId = document.getElementById("newLoginId").value.trim();
+            const password = document.getElementById("newPassword").value;
+            const role = document.getElementById("newRole").value;
+            const email = document.getElementById("newEmail").value.trim();
+            const phone = document.getElementById("newPhone").value.trim();
+            const hireDate = document.getElementById("newHireDate").value;
+
+            if (!name || !loginId || !password || !email || !phone || !hireDate) {
+                alert("모든 항목을 입력해주세요.");
+                return;
+            }
+
+            const all = loadEmployees();
+
+            // 로그인ID 중복 검사 (FR-EMG-003)
+            const duplicated = all.some(function (e) { return e.loginId === loginId; });
+            if (duplicated) {
+                alert("이미 사용 중인 로그인ID입니다.");
+                return;
+            }
+
+            all.push({
+                empNo: nextEmpNo(all),
+                name: name,
+                dept: dept,
+                position: position,
+                loginId: loginId,
+                password: password,
+                role: role,
+                email: email,
+                phone: phone,
+                hireDate: hireDate,
+                status: "ACTIVE"
+            });
+
+            saveEmployees(all);
+
+            // 폼 초기화
+            ["newName", "newLoginId", "newPassword", "newEmail", "newPhone", "newHireDate"].forEach(function (id) {
+                document.getElementById(id).value = "";
+            });
+            document.getElementById("newDept").value = "개발팀";
+            document.getElementById("newPosition").value = "사원";
+            document.getElementById("newRole").value = "EMPLOYEE";
+
+            addFormCard.hidden = true;
+            renderTable();
+        });
+
+        renderTable();
+
+        // ===== 알림 드롭다운 =====
+        function loadNotifications() {
+            // TODO(백엔드): NotificationDAO.selectByReceiver(로그인한 empNo)로 교체
+            return JSON.parse(localStorage.getItem("notifications")) || [];
+        }
+        function saveNotifications(list) {
+            localStorage.setItem("notifications", JSON.stringify(list));
+        }
+
+        const notifBell = document.getElementById("notifBell");
+        const notifDropdown = document.getElementById("notifDropdown");
+        const notifBadge = document.getElementById("notifBadge");
+        const notifList = document.getElementById("notifList");
+
+        function renderNotifications() {
+            const list = loadNotifications();
+            const unread = list.filter(function (n) { return n.readYn === "N"; });
+
+            if (unread.length > 0) {
+                notifBadge.textContent = unread.length;
+                notifBadge.hidden = false;
+            } else {
+                notifBadge.hidden = true;
+            }
+
+            notifList.innerHTML = "";
+            if (list.length === 0) {
+                notifList.innerHTML = "<li class=\"notif-empty\">알림이 없습니다.</li>";
+                return;
+            }
+
+            list.slice().reverse().forEach(function (n) {
+                const li = document.createElement("li");
+                li.className = "notif-item" + (n.readYn === "N" ? " unread" : "");
+                li.innerHTML = n.content + "<span class=\"notif-item-date\">" + n.sentDate + "</span>";
+                li.addEventListener("click", function () {
+                    n.readYn = "Y";
+                    saveNotifications(list);
+                    renderNotifications();
+                });
+                notifList.appendChild(li);
+            });
+        }
+
+        notifBell.addEventListener("click", function (e) {
+            e.stopPropagation();
+            notifDropdown.hidden = !notifDropdown.hidden;
+        });
+        document.addEventListener("click", function (e) {
+            if (!notifDropdown.hidden && !notifDropdown.contains(e.target) && e.target !== notifBell) {
+                notifDropdown.hidden = true;
+            }
+        });
+
+        renderNotifications();
+    </script>
+
+</body>
+</html>

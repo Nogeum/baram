@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>근태관리 시스템 - 승인 대기함</title>
+    <style>
+
+           .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgb(26, 40, 90);
+            color: white;
+            padding: 10px 20px;
+           }
+
+           .topbar-title {
+            font-size: 24px;
+            font-weight: bold;
+           }
+           .topbar-user {
+            font-size: 14px;
+           }
+           .topbar-user a {
+            color: white;
+           }
+           .layout  {
+            display: flex;
+           }
+           .sidebar {
+            width: 200px;
+            background-color: #f0f0f0;
+            padding: 0;
+            font-size: 16px;
+           }
+           .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+           }
+           .sidebar li  {
+            list-style: none;
+           }
+           .sidebar li.active {
+            background-color: #334eac;
+            color: white;
+            font-weight: bold;
+           }
+           .sidebar li.active a {
+            color: white;
+           }
+           .sidebar a {
+            text-decoration: none;
+            color: #333;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+           }
+           .menu-icon {
+            flex-shrink: 0;
+           }
+
+           .content  {
+            flex: 1;
+            padding: 20px;
+           }
+
+           /* ===== 필터 탭 ===== */
+           .filter-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+           }
+           .filter-tab {
+            padding: 8px 20px;
+            border: 1px solid #ccc;
+            background-color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+           }
+           .filter-tab.active {
+            background-color: #334eac;
+            color: white;
+            border-color: #334eac;
+           }
+
+           /* ===== 요청 테이블 ===== */
+           .status-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+           }
+           .status-table th,
+           .status-table td {
+            border: 1px solid #ddd;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 14px;
+           }
+           .status-table th {
+            background-color: #f0f0f0;
+           }
+           .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: white;
+           }
+           .status-badge.wait {
+            background-color: #999;
+           }
+           .status-badge.approve {
+            background-color: #4caf50;
+           }
+           .status-badge.reject {
+            background-color: #d9534f;
+           }
+           .btn-approve,
+           .btn-reject {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 13px;
+            color: white;
+            cursor: pointer;
+            margin-right: 4px;
+           }
+           .btn-approve {
+            background-color: #4caf50;
+           }
+           .btn-approve:hover {
+            background-color: #3d8b40;
+           }
+           .btn-reject {
+            background-color: #d9534f;
+           }
+           .btn-reject:hover {
+            background-color: #c9302c;
+           }
+           .btn-approve:disabled,
+           .btn-reject:disabled {
+            background-color: #ddd;
+            cursor: not-allowed;
+           }
+           .empty-message {
+            border: 1px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+           }
+
+           /* ===== 알림 드롭다운 ===== */
+           .notif-wrap {
+            position: relative;
+            display: inline-block;
+           }
+           .notif-bell {
+            position: relative;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0;
+           }
+           .notif-badge {
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background-color: #d9534f;
+            color: white;
+            font-size: 10px;
+            border-radius: 999px;
+            padding: 1px 5px;
+           }
+           .notif-dropdown {
+            position: absolute;
+            top: 26px;
+            right: 0;
+            width: 280px;
+            background-color: white;
+            color: #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 100;
+            overflow: hidden;
+           }
+           .notif-dropdown-title {
+            padding: 12px 16px;
+            font-weight: bold;
+            border-bottom: 1px solid #eee;
+            font-size: 14px;
+           }
+           .notif-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            max-height: 280px;
+            overflow-y: auto;
+           }
+           .notif-item {
+            padding: 10px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+            color: #444;
+            cursor: pointer;
+           }
+           .notif-item:last-child {
+            border-bottom: none;
+           }
+           .notif-item.unread {
+            background-color: #eef1fb;
+            font-weight: bold;
+           }
+           .notif-item-date {
+            display: block;
+            margin-top: 4px;
+            font-size: 11px;
+            color: #999;
+            font-weight: normal;
+           }
+           .notif-empty {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+           }
+
+    </style>
+</head>
+<body>
+
+    <!-- ===== 상단 헤더 ===== -->
+    <header class="topbar">
+        <h1 class="topbar-title">근태관리 시스템 [관리자]</h1>
+        <div class="topbar-user">
+            <span>OOO 님(수정해야됨)</span>
+            <span>|</span>
+            <div class="notif-wrap">
+                <button type="button" class="notif-bell" id="notifBell">알림🔔<span class="notif-badge" id="notifBadge" hidden>0</span></button>
+                <div class="notif-dropdown" id="notifDropdown" hidden>
+                    <div class="notif-dropdown-title">알림</div>
+                    <ul class="notif-list" id="notifList"></ul>
+                </div>
+            </div>
+            <span>|</span>
+            <a href="../login/login.html">로그아웃</a>
+        </div>
+    </header>
+
+    <!-- ===== 본문: 왼쪽 메뉴 + 오른쪽 내용 ===== -->
+    <div class="layout">
+
+        <!-- 왼쪽 사이드바 메뉴 -->
+        <nav class="sidebar">
+            <ul>
+                <li><a href="main.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>관리자 메인</a></li>
+                <li><a href="attendance-manage.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>근태 관리</a></li>
+                <li><a href="schedule-assign.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>스케줄 배정</a></li>
+                <li class="active"><a href="approval.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>승인 대기함</a></li>
+                <li><a href="employee-manage.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>직원 관리</a></li>
+                <li><a href="notification.html"><svg class="menu-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>알림</a></li>
+            </ul>
+        </nav>
+
+        <!-- 오른쪽 메인 콘텐츠 -->
+        <main class="content">
+
+            <h2>승인 대기함</h2>
+
+            <div class="filter-tabs">
+                <button type="button" class="filter-tab active" data-filter="전체">전체</button>
+                <button type="button" class="filter-tab" data-filter="대기">대기</button>
+                <button type="button" class="filter-tab" data-filter="승인">승인</button>
+                <button type="button" class="filter-tab" data-filter="반려">반려</button>
+            </div>
+
+            <table class="status-table" id="approvalTable">
+                <thead>
+                    <tr>
+                        <th>신청자</th>
+                        <th>부서</th>
+                        <th>유형</th>
+                        <th>기간</th>
+                        <th>사유</th>
+                        <th>상태</th>
+                        <th>처리</th>
+                    </tr>
+                </thead>
+                <tbody id="approvalTableBody"></tbody>
+            </table>
+
+            <div class="empty-message" id="emptyMessage" hidden>
+                신청 내역이 없습니다.
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        /*
+         * ============================================================
+         * [승인 대기함 - 백엔드 연동 시 가장 중요하게 손봐야 할 화면]
+         * 1) 지금은 휴가 신청(leaveRequests)만 다루고 시간외수당 신청은 안 보임
+         *    → OvertimeRequestDAO 조회도 합쳐서 type(LEAVE/OVERTIME)으로 구분해야 함
+         * 2) 승인 처리(approveRequest) → 지금은 상태만 바꾸고 끝나지만, 실제로는
+         *    "상태 변경 + LEAVE_BALANCE.USED_DAYS 증가"가 하나의 트랜잭션이어야 함 (BL-014,
+         *    FR-APR-005) → 하나라도 실패하면 둘 다 롤백되어야 잔여 연차가 안 꼬임
+         * 3) 반려 처리(rejectRequest) → 반려 사유(PROCESS_REASON) 필수 입력은 이미 구현되어 있음,
+         *    서버에서도 사유 없으면 거부하도록 재검증 필요 (VAL-009)
+         * 4) WAIT 상태만 승인/반려 가능하도록 이미 버튼 disabled 처리는 되어있지만,
+         *    서버에서도 "이미 처리된 건 재처리 방지"를 반드시 검증해야 함 (FR-APR-003, VAL-010)
+         * 5) pushNotification() → 승인/반려 결과를 신청자에게 알림으로 남기는 부분 (FR-APR-007),
+         *    실제로는 NotificationDAO.insertNotification()으로 교체
+         * ============================================================
+         */
+        const menuItems = document.querySelectorAll(".sidebar li");
+        menuItems.forEach(function (item) {
+            item.addEventListener("click", function () {
+                menuItems.forEach(function (i) { i.classList.remove("active"); });
+                item.classList.add("active");
+            });
+        });
+
+        // ===== 승인 대기함: 직원 쪽과 같은 leaveRequests 저장소를 공유 =====
+        const statusBadgeClass = { "대기": "wait", "승인": "approve", "반려": "reject" };
+
+        function loadRequests() {
+            return JSON.parse(localStorage.getItem("leaveRequests")) || [];
+        }
+        function saveRequests(list) {
+            localStorage.setItem("leaveRequests", JSON.stringify(list));
+        }
+
+        let currentFilter = "전체";
+
+        const tbody = document.getElementById("approvalTableBody");
+        const emptyMessage = document.getElementById("emptyMessage");
+        const table = document.getElementById("approvalTable");
+
+        function render() {
+            const all = loadRequests();
+            // 신청일 최신순
+            all.sort(function (a, b) { return b.reqDate.localeCompare(a.reqDate); });
+
+            const filtered = currentFilter === "전체" ? all : all.filter(function (r) { return r.status === currentFilter; });
+
+            tbody.innerHTML = "";
+
+            if (filtered.length === 0) {
+                table.hidden = true;
+                emptyMessage.hidden = false;
+                return;
+            }
+            table.hidden = false;
+            emptyMessage.hidden = true;
+
+            filtered.forEach(function (req) {
+                // all 배열에서의 실제 인덱스를 찾아야 승인/반려 시 정확한 항목을 갱신할 수 있음
+                const realIndex = all.indexOf(req);
+                const badgeClass = statusBadgeClass[req.status] || "wait";
+                const isWaiting = req.status === "대기";
+
+                const tr = document.createElement("tr");
+                tr.innerHTML =
+                    "<td>" + (req.name || "-") + "</td>" +
+                    "<td>" + (req.dept || "-") + "</td>" +
+                    "<td>" + req.type + "</td>" +
+                    "<td>" + req.start + " ~ " + req.end + "</td>" +
+                    "<td>" + (req.reason || "-") + "</td>" +
+                    "<td><span class=\"status-badge " + badgeClass + "\">" + req.status + "</span></td>" +
+                    "<td>" +
+                    "<button type=\"button\" class=\"btn-approve\" data-index=\"" + realIndex + "\" " + (isWaiting ? "" : "disabled") + ">승인</button>" +
+                    "<button type=\"button\" class=\"btn-reject\" data-index=\"" + realIndex + "\" " + (isWaiting ? "" : "disabled") + ">반려</button>" +
+                    "</td>";
+                tbody.appendChild(tr);
+            });
+
+            // 버튼 이벤트 연결
+            tbody.querySelectorAll(".btn-approve").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    approveRequest(Number(btn.dataset.index));
+                });
+            });
+            tbody.querySelectorAll(".btn-reject").forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    rejectRequest(Number(btn.dataset.index));
+                });
+            });
+        }
+
+        function approveRequest(index) {
+            const all = loadRequests();
+            const req = all[index];
+            if (!confirm(req.name + "님의 " + req.type + " 신청을 승인하시겠습니까?")) return;
+
+            req.status = "승인";
+            req.processDate = new Date().toISOString().slice(0, 10);
+            req.processedBy = ""; // TODO(백엔드): 로그인한 관리자 empNo로 채워야 함
+            saveRequests(all);
+            pushNotification(req.type + " 휴가 신청이 승인되었습니다.", "APPROVE");
+            render();
+        }
+
+        function rejectRequest(index) {
+            const all = loadRequests();
+            const req = all[index];
+            const reason = prompt("반려 사유를 입력해주세요.");
+            if (reason === null) return; // 취소
+            if (!reason.trim()) {
+                alert("반려 사유는 필수입니다.");
+                return;
+            }
+
+            req.status = "반려";
+            req.processReason = reason;
+            req.processDate = new Date().toISOString().slice(0, 10);
+            req.processedBy = ""; // TODO(백엔드): 로그인한 관리자 empNo로 채워야 함
+            saveRequests(all);
+            pushNotification(req.type + " 휴가 신청이 반려되었습니다. (사유: " + reason + ")", "REJECT");
+            render();
+        }
+
+        // 승인/반려 결과를 직원 쪽 알림함(상단바 종 아이콘)에도 생성 (FR-NOT-004, FR-APR-007)
+        function pushNotification(content, type) {
+            const list = JSON.parse(localStorage.getItem("notifications")) || [];
+            list.push({
+                id: Date.now(),
+                content: content,
+                type: type,
+                sentDate: new Date().toISOString().slice(5, 10),
+                readYn: "N"
+            });
+            localStorage.setItem("notifications", JSON.stringify(list));
+        }
+
+        document.querySelectorAll(".filter-tab").forEach(function (tab) {
+            tab.addEventListener("click", function () {
+                document.querySelectorAll(".filter-tab").forEach(function (t) { t.classList.remove("active"); });
+                tab.classList.add("active");
+                currentFilter = tab.dataset.filter;
+                render();
+            });
+        });
+
+        render();
+
+        // ===== 알림 드롭다운 =====
+        function loadNotifications() {
+            // TODO(백엔드): NotificationDAO.selectByReceiver(로그인한 empNo)로 교체
+            return JSON.parse(localStorage.getItem("notifications")) || [];
+        }
+        function saveNotifications(list) {
+            localStorage.setItem("notifications", JSON.stringify(list));
+        }
+
+        const notifBell = document.getElementById("notifBell");
+        const notifDropdown = document.getElementById("notifDropdown");
+        const notifBadge = document.getElementById("notifBadge");
+        const notifList = document.getElementById("notifList");
+
+        function renderNotifications() {
+            const list = loadNotifications();
+            const unread = list.filter(function (n) { return n.readYn === "N"; });
+
+            if (unread.length > 0) {
+                notifBadge.textContent = unread.length;
+                notifBadge.hidden = false;
+            } else {
+                notifBadge.hidden = true;
+            }
+
+            notifList.innerHTML = "";
+            if (list.length === 0) {
+                notifList.innerHTML = "<li class=\"notif-empty\">알림이 없습니다.</li>";
+                return;
+            }
+
+            list.slice().reverse().forEach(function (n) {
+                const li = document.createElement("li");
+                li.className = "notif-item" + (n.readYn === "N" ? " unread" : "");
+                li.innerHTML = n.content + "<span class=\"notif-item-date\">" + n.sentDate + "</span>";
+                li.addEventListener("click", function () {
+                    n.readYn = "Y";
+                    saveNotifications(list);
+                    renderNotifications();
+                });
+                notifList.appendChild(li);
+            });
+        }
+
+        notifBell.addEventListener("click", function (e) {
+            e.stopPropagation();
+            notifDropdown.hidden = !notifDropdown.hidden;
+        });
+        document.addEventListener("click", function (e) {
+            if (!notifDropdown.hidden && !notifDropdown.contains(e.target) && e.target !== notifBell) {
+                notifDropdown.hidden = true;
+            }
+        });
+
+        renderNotifications();
+    </script>
+
+</body>
+</html>

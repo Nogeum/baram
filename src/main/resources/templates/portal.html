@@ -34,6 +34,7 @@
 <a th:href="@{/admin/main}" th:classappend="${page=='main'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#home"></use></svg><span>시스템 관리</span></a>
 <a th:href="@{/admin/employee-manage}" th:classappend="${page=='employee-manage'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#users"></use></svg><span>직원·권한 관리</span></a>
 <a th:href="@{/admin/notification}" th:classappend="${page=='notification'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#bell"></use></svg><span>공지·알림</span></a>
+<a th:href="@{/groupware/holidays}" th:classappend="${page=='gw-holidays'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#sun"></use></svg><span>공휴일·회사 휴무일</span></a>
 <a th:href="@{/groupware/reservations}" th:classappend="${page=='gw-reservations'} ? 'active'"><svg class="nav-icon" aria-hidden="true"><use href="/images/navigation.svg#building"></use></svg><span>회의실·장비 예약 허가</span></a>
 </nav></aside>
 <main class="content"><div class="page-heading"><div><h1 th:text="${title}"></h1><span class="muted" th:text="${admin ? '함께 일하는 조직을 한눈에 관리하세요.' : me.name + ' 님, 오늘도 좋은 하루 보내세요.'}"></span></div><button th:if="${page=='employee-manage'}" type="button" id="openEmployeeCreate" class="employee-add"><span aria-hidden="true">+</span> 신규 직원 등록</button><span th:unless="${page=='employee-manage'}" class="badge" th:text="${today} + ' · KST'"></span></div>
@@ -59,6 +60,7 @@
 <div class="card"><div class="card-label">재직 계정</div><div class="card-value" th:text="${employeeCount}+'명'"></div><a th:href="@{/admin/employee-manage}">직원·권한 관리 →</a></div>
 <div class="card"><div class="card-label">부서 관리 권한자</div><div class="card-value" th:text="${managerCount}+'명'"></div><small>직급과 별도로 권한을 지정합니다.</small></div>
 <div class="card"><div class="card-label">사내 공지</div><a th:href="@{/admin/notification}">공지 등록·관리 →</a></div>
+<div class="card"><div class="card-label">공휴일·회사 휴무일</div><a th:href="@{/groupware/holidays}">휴무일 등록·관리 →</a><small>휴가 차감과 근태 집계에 반영됩니다.</small></div>
 </section>
 <div class="attendance-overview" th:if="${!admin and page=='main'}">
   <section class="panel today-attendance" aria-labelledby="today-attendance-title">
@@ -115,6 +117,6 @@
 
 <section th:if="${page=='employee-manage'}"><div th:replace="~{fragments/employees :: management}"></div></section>
 
-<section class="panel" th:if="${admin and page=='notification'}"><h2>공지사항 등록</h2><form class="form-grid" th:action="@{/admin/notices}" method="post"><label class="full">제목<input name="title" maxlength="160" required></label><label class="full">내용<textarea name="content" maxlength="2000" required></textarea></label><div class="full"><button>공지 등록</button></div></form></section>
-<section class="panel" th:if="${(!managerView and page=='main') or page=='notification'}"><h2>사내 공지사항</h2><article class="notice" th:each="n : ${notices}"><h3 th:text="${n.title}"></h3><small th:text="${#temporals.format(n.createdAt,'yyyy-MM-dd HH:mm')} + ' · ' + ${n.author.displayName}"></small><p th:text="${n.content}"></p></article><p class="empty" th:if="${#lists.isEmpty(notices)}">등록된 공지가 없습니다.</p></section>
+<div th:replace="~{fragments/notices :: create}"></div>
+<div th:replace="~{fragments/notices :: list}"></div>
 <datalist id="position-options"><option value="사원"></option><option value="주임"></option><option value="대리"></option><option value="과장"></option><option value="차장"></option><option value="부장"></option><option value="본부장"></option></datalist></main></div></div><div th:replace="~{fragments/chat :: widget}"></div></body></html>

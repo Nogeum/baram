@@ -18,6 +18,7 @@ public class PortalService {
     private final AttendanceCorrectionRepository corrections;
     private final ScheduleRepository schedules;
     private final NoticeRepository notices;
+    private final StoredFileRepository storedFiles;
     private final NotificationRepository notifications;
     private final PasswordEncoder encoder;
     private final Clock clock;
@@ -188,8 +189,55 @@ public class PortalService {
         }
     }
     @Transactional public void publish(String login, String title, String content) {
-        var e=current(login); require(e.getRole()==Employee.Role.ADMIN,"관리자 권한이 필요합니다.");
-        var n = new Notice(); n.setAuthor(e); n.setTitle(required(title,160,"제목")); n.setContent(required(content,2000,"내용")); n.setCreatedAt(LocalDateTime.now(clock)); notices.save(n);
+        saveNotice(login,null,title,content,List.of(),List.of());
+    }
+    private Employee noticeAdmin(String login) {
+        var e=current(login);
+        if(e.getRole()!=Employee.Role.ADMIN) throw new org.springframework.security.access.AccessDeniedException("관리자만 공지사항을 관리할 수 있습니다.");
+        return e;
+    }
+    @Transactional public Long saveNotice(String login, Long id, String title, String content,
+            List<org.springframework.web.multipart.MultipartFile> attachments, List<Long> removeFileIds) {
+        var actor=noticeAdmin(login);
+        var notice=id==null ? new Notice() : notices.lockById(id).orElseThrow(()->new BusinessException("공지사항이 없습니다."));
+        notice.setTitle(required(title,160,"제목"));
+        notice.setContent(required(content,2000,"내용"));
+        if(id==null) { notice.setAuthor(actor); notice.setCreatedAt(LocalDateTime.now(clock)); }
+        notices.save(notice);
+        if(removeFileIds!=null) for(var fileId:new HashSet<>(removeFileIds)) {
+            var file=storedFiles.findById(fileId).orElseThrow(()->new BusinessException("첨부파일이 없습니다."));
+            require("NOTICE".equals(file.getOwnerType()) && notice.getId().equals(file.getOwnerId()),"이 공지사항의 첨부파일만 삭제할 수 있습니다.");
+            storedFiles.delete(file);
+        }
+        if(attachments!=null) for(var upload:attachments) {
+            if(upload==null || upload.isEmpty()) continue;
+            require(upload.getSize()<=10*1024*1024,"첨부파일은 파일당 10MB 이하여야 합니다.");
+            String name=Objects.toString(upload.getOriginalFilename(),"").replace('\\','/');
+            name=name.substring(name.lastIndexOf('/')+1).replaceAll("[\\p{Cntrl}]","");
+            require(!name.isBlank() && name.length()<=200,"파일명은 1~200자여야 합니다.");
+            var file=new StoredFile(); file.setOwnerType("NOTICE"); file.setOwnerId(notice.getId());
+            file.setUploader(actor); file.setFilename(name); file.setFileSize(upload.getSize()); file.setCreatedAt(LocalDateTime.now(clock));
+            try { file.setData(upload.getBytes()); } catch(java.io.IOException ex) { throw new BusinessException("첨부파일을 읽을 수 없습니다."); }
+            storedFiles.save(file);
+        }
+        return notice.getId();
+    }
+    @Transactional public void deleteNotice(String login, Long id) {
+        noticeAdmin(login);
+        var notice=notices.lockById(id).orElseThrow(()->new BusinessException("공지사항이 없습니다."));
+        storedFiles.deleteOwnedFiles("NOTICE",id);
+        notices.delete(notice);
+    }
+    public Map<Long,List<StoredFileRepository.FileInfo>> noticeAttachments(List<Notice> rows) {
+        var result=new HashMap<Long,List<StoredFileRepository.FileInfo>>();
+        for(var notice:rows) result.put(notice.getId(),storedFiles.metadata("NOTICE",notice.getId()));
+        return result;
+    }
+    public StoredFile noticeAttachment(String login, Long id) {
+        current(login);
+        var file=storedFiles.findById(id).orElseThrow(()->new BusinessException("첨부파일이 없습니다."));
+        require("NOTICE".equals(file.getOwnerType()) && notices.existsById(file.getOwnerId()),"공지 첨부파일이 없습니다.");
+        return file;
     }
     @Transactional public void readNotification(String login, Long id) {
         var n = notifications.findById(id).orElseThrow(() -> new BusinessException("알림이 없습니다."));
